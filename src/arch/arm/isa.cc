@@ -344,11 +344,13 @@ ISA::initID32(const ArmISAParams &p)
     miscRegs[MISCREG_ID_ISAR3] = p.id_isar3;
     miscRegs[MISCREG_ID_ISAR4] = p.id_isar4;
     miscRegs[MISCREG_ID_ISAR5] = p.id_isar5;
+    miscRegs[MISCREG_ID_ISAR6] = p.id_isar6;
 
     miscRegs[MISCREG_ID_MMFR0] = p.id_mmfr0;
     miscRegs[MISCREG_ID_MMFR1] = p.id_mmfr1;
     miscRegs[MISCREG_ID_MMFR2] = p.id_mmfr2;
     miscRegs[MISCREG_ID_MMFR3] = p.id_mmfr3;
+    miscRegs[MISCREG_ID_MMFR4] = p.id_mmfr4;
 
     miscRegs[MISCREG_ID_ISAR5] = insertBits(
         miscRegs[MISCREG_ID_ISAR5], 19, 4,
@@ -1390,6 +1392,7 @@ ISA::setMiscReg(int misc_reg, RegVal val)
           case MISCREG_ID_MMFR1:
           case MISCREG_ID_MMFR2:
           case MISCREG_ID_MMFR3:
+          case MISCREG_ID_MMFR4:
           case MISCREG_ID_ISAR0:
           case MISCREG_ID_ISAR1:
           case MISCREG_ID_ISAR2:
@@ -2354,14 +2357,14 @@ void
 ISA::serialize(CheckpointOut &cp) const
 {
     DPRINTF(Checkpoint, "Serializing Arm Misc Registers\n");
-    SERIALIZE_ARRAY(miscRegs, NUM_PHYS_MISCREGS);
+    SERIALIZE_MAPPING(miscRegs, miscRegName, NUM_PHYS_MISCREGS);
 }
 
 void
 ISA::unserialize(CheckpointIn &cp)
 {
     DPRINTF(Checkpoint, "Unserializing Arm Misc Registers\n");
-    UNSERIALIZE_ARRAY(miscRegs, NUM_PHYS_MISCREGS);
+    UNSERIALIZE_MAPPING(miscRegs, miscRegName, NUM_PHYS_MISCREGS);
     CPSR tmp_cpsr = miscRegs[MISCREG_CPSR];
     updateRegMap(tmp_cpsr);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011,2017-2019 ARM Limited
+ * Copyright (c) 2011,2017-2020 ARM Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -200,12 +200,14 @@ TarmacParserRecord::MiscRegMap TarmacParserRecord::miscRegMap = {
     { "id_mmfr1", MISCREG_ID_MMFR1 },
     { "id_mmfr2", MISCREG_ID_MMFR2 },
     { "id_mmfr3", MISCREG_ID_MMFR3 },
+    { "id_mmfr4", MISCREG_ID_MMFR4 },
     { "id_isar0", MISCREG_ID_ISAR0 },
     { "id_isar1", MISCREG_ID_ISAR1 },
     { "id_isar2", MISCREG_ID_ISAR2 },
     { "id_isar3", MISCREG_ID_ISAR3 },
     { "id_isar4", MISCREG_ID_ISAR4 },
     { "id_isar5", MISCREG_ID_ISAR5 },
+    { "id_isar6", MISCREG_ID_ISAR6 },
     { "ccsidr", MISCREG_CCSIDR },
     { "clidr", MISCREG_CLIDR },
     { "aidr", MISCREG_AIDR },
@@ -498,12 +500,14 @@ TarmacParserRecord::MiscRegMap TarmacParserRecord::miscRegMap = {
     { "id_mmfr1_el1", MISCREG_ID_MMFR1_EL1 },
     { "id_mmfr2_el1", MISCREG_ID_MMFR2_EL1 },
     { "id_mmfr3_el1", MISCREG_ID_MMFR3_EL1 },
+    { "id_mmfr4_el1", MISCREG_ID_MMFR4_EL1 },
     { "id_isar0_el1", MISCREG_ID_ISAR0_EL1 },
     { "id_isar1_el1", MISCREG_ID_ISAR1_EL1 },
     { "id_isar2_el1", MISCREG_ID_ISAR2_EL1 },
     { "id_isar3_el1", MISCREG_ID_ISAR3_EL1 },
     { "id_isar4_el1", MISCREG_ID_ISAR4_EL1 },
     { "id_isar5_el1", MISCREG_ID_ISAR5_EL1 },
+    { "id_isar6_el1", MISCREG_ID_ISAR6_EL1 },
     { "mvfr0_el1", MISCREG_MVFR0_EL1 },
     { "mvfr1_el1", MISCREG_MVFR1_EL1 },
     { "mvfr2_el1", MISCREG_MVFR2_EL1 },

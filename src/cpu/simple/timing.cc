@@ -131,7 +131,7 @@ TimingSimpleCPU::drainResume()
 
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         if (threadInfo[tid]->thread->status() == ThreadContext::Active) {
-            threadInfo[tid]->notIdleFraction = 1;
+            threadInfo[tid]->execContextStats.notIdleFraction = 1;
 
             activeThreads.push_back(tid);
 
@@ -142,14 +142,12 @@ TimingSimpleCPU::drainResume()
                 schedule(fetchEvent, nextCycle());
             }
         } else {
-            threadInfo[tid]->notIdleFraction = 0;
+            threadInfo[tid]->execContextStats.notIdleFraction = 0;
         }
     }
 
     // Reschedule any power gating event (if any)
     schedulePowerGatingEvent();
-
-    system->totalNumInsts = 0;
 }
 
 bool
@@ -214,7 +212,7 @@ TimingSimpleCPU::activateContext(ThreadID thread_num)
 
     assert(thread_num < numThreads);
 
-    threadInfo[thread_num]->notIdleFraction = 1;
+    threadInfo[thread_num]->execContextStats.notIdleFraction = 1;
     if (_status == BaseSimpleCPU::Idle)
         _status = BaseSimpleCPU::Running;
 
@@ -248,7 +246,7 @@ TimingSimpleCPU::suspendContext(ThreadID thread_num)
 
     assert(_status == BaseSimpleCPU::Running);
 
-    threadInfo[thread_num]->notIdleFraction = 0;
+    threadInfo[thread_num]->execContextStats.notIdleFraction = 0;
 
     if (activeThreads.empty()) {
         _status = Idle;
@@ -1078,7 +1076,7 @@ TimingSimpleCPU::updateCycleCounts()
 {
     const Cycles delta(curCycle() - previousCycle);
 
-    numCycles += delta;
+    baseStats.numCycles += delta;
 
     previousCycle = curCycle();
 }

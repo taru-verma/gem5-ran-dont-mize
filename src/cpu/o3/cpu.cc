@@ -72,12 +72,6 @@ BaseO3CPU::BaseO3CPU(const BaseCPUParams &params)
 {
 }
 
-void
-BaseO3CPU::regStats()
-{
-    BaseCPU::regStats();
-}
-
 template <class Impl>
 FullO3CPU<Impl>::FullO3CPU(const DerivO3CPUParams &params)
     : BaseO3CPU(params),
@@ -126,7 +120,8 @@ FullO3CPU<Impl>::FullO3CPU(const DerivO3CPUParams &params)
 
       globalSeqNum(1),
       system(params.system),
-      lastRunningCycle(curCycle())
+      lastRunningCycle(curCycle()),
+      cpuStats(this)
 {
     fatal_if(FullSystem && params.numThreads > 1,
             "SMT is not supported in O3 in full system mode currently.");
@@ -383,28 +378,45 @@ FullO3CPU<Impl>::regProbePoints()
 }
 
 template <class Impl>
-void
-FullO3CPU<Impl>::regStats()
+FullO3CPU<Impl>::
+FullO3CPUStats::FullO3CPUStats(FullO3CPU *cpu)
+    : Stats::Group(cpu),
+      ADD_STAT(timesIdled,
+               "Number of times that the entire CPU went into an idle state "
+               "and unscheduled itself"),
+      ADD_STAT(idleCycles,
+               "Total number of cycles that the CPU has spent unscheduled due "
+               "to idling"),
+      ADD_STAT(quiesceCycles,
+               "Total number of cycles that CPU has spent quiesced or waiting "
+               "for an interrupt"),
+      ADD_STAT(committedInsts, "Number of Instructions Simulated"),
+      ADD_STAT(committedOps, "Number of Ops (including micro ops) Simulated"),
+      ADD_STAT(cpi, "CPI: Cycles Per Instruction"),
+      ADD_STAT(totalCpi, "CPI: Total CPI of All Threads"),
+      ADD_STAT(ipc, "IPC: Instructions Per Cycle"),
+      ADD_STAT(totalIpc, "IPC: Total IPC of All Threads"),
+      ADD_STAT(intRegfileReads, "Number of integer regfile reads"),
+      ADD_STAT(intRegfileWrites, "Number of integer regfile writes"),
+      ADD_STAT(fpRegfileReads, "Number of floating regfile reads"),
+      ADD_STAT(fpRegfileWrites, "Number of floating regfile writes"),
+      ADD_STAT(vecRegfileReads, "number of vector regfile reads"),
+      ADD_STAT(vecRegfileWrites, "number of vector regfile writes"),
+      ADD_STAT(vecPredRegfileReads, "number of predicate regfile reads"),
+      ADD_STAT(vecPredRegfileWrites, "number of predicate regfile writes"),
+      ADD_STAT(ccRegfileReads, "number of cc regfile reads"),
+      ADD_STAT(ccRegfileWrites, "number of cc regfile writes"),
+      ADD_STAT(miscRegfileReads, "number of misc regfile reads"),
+      ADD_STAT(miscRegfileWrites, "number of misc regfile writes")
 {
-    BaseO3CPU::regStats();
-
     // Register any of the O3CPU's stats here.
     timesIdled
-        .name(name() + ".timesIdled")
-        .desc("Number of times that the entire CPU went into an idle state and"
-              " unscheduled itself")
         .prereq(timesIdled);
 
     idleCycles
-        .name(name() + ".idleCycles")
-        .desc("Total number of cycles that the CPU has spent unscheduled due "
-              "to idling")
         .prereq(idleCycles);
 
     quiesceCycles
-        .name(name() + ".quiesceCycles")
-        .desc("Total number of cycles that CPU has spent quiesced or waiting "
-              "for an interrupt")
         .prereq(quiesceCycles);
 
     // Number of Instructions simulated
@@ -412,101 +424,63 @@ FullO3CPU<Impl>::regStats()
     // Should probably be in Base CPU but need templated
     // MaxThreads so put in here instead
     committedInsts
-        .init(numThreads)
-        .name(name() + ".committedInsts")
-        .desc("Number of Instructions Simulated")
+        .init(cpu->numThreads)
         .flags(Stats::total);
 
     committedOps
-        .init(numThreads)
-        .name(name() + ".committedOps")
-        .desc("Number of Ops (including micro ops) Simulated")
+        .init(cpu->numThreads)
         .flags(Stats::total);
 
     cpi
-        .name(name() + ".cpi")
-        .desc("CPI: Cycles Per Instruction")
         .precision(6);
-    cpi = numCycles / committedInsts;
+    cpi = cpu->baseStats.numCycles / committedInsts;
 
     totalCpi
-        .name(name() + ".cpi_total")
-        .desc("CPI: Total CPI of All Threads")
         .precision(6);
-    totalCpi = numCycles / sum(committedInsts);
+    totalCpi = cpu->baseStats.numCycles / sum(committedInsts);
 
     ipc
-        .name(name() + ".ipc")
-        .desc("IPC: Instructions Per Cycle")
         .precision(6);
-    ipc =  committedInsts / numCycles;
+    ipc = committedInsts / cpu->baseStats.numCycles;
 
     totalIpc
-        .name(name() + ".ipc_total")
-        .desc("IPC: Total IPC of All Threads")
         .precision(6);
-    totalIpc =  sum(committedInsts) / numCycles;
-
-    this->iew.regStats();
+    totalIpc = sum(committedInsts) / cpu->baseStats.numCycles;
 
     intRegfileReads
-        .name(name() + ".int_regfile_reads")
-        .desc("number of integer regfile reads")
         .prereq(intRegfileReads);
 
     intRegfileWrites
-        .name(name() + ".int_regfile_writes")
-        .desc("number of integer regfile writes")
         .prereq(intRegfileWrites);
 
     fpRegfileReads
-        .name(name() + ".fp_regfile_reads")
-        .desc("number of floating regfile reads")
         .prereq(fpRegfileReads);
 
     fpRegfileWrites
-        .name(name() + ".fp_regfile_writes")
-        .desc("number of floating regfile writes")
         .prereq(fpRegfileWrites);
 
     vecRegfileReads
-        .name(name() + ".vec_regfile_reads")
-        .desc("number of vector regfile reads")
         .prereq(vecRegfileReads);
 
     vecRegfileWrites
-        .name(name() + ".vec_regfile_writes")
-        .desc("number of vector regfile writes")
         .prereq(vecRegfileWrites);
 
     vecPredRegfileReads
-        .name(name() + ".pred_regfile_reads")
-        .desc("number of predicate regfile reads")
         .prereq(vecPredRegfileReads);
 
     vecPredRegfileWrites
-        .name(name() + ".pred_regfile_writes")
-        .desc("number of predicate regfile writes")
         .prereq(vecPredRegfileWrites);
 
     ccRegfileReads
-        .name(name() + ".cc_regfile_reads")
-        .desc("number of cc regfile reads")
         .prereq(ccRegfileReads);
 
     ccRegfileWrites
-        .name(name() + ".cc_regfile_writes")
-        .desc("number of cc regfile writes")
         .prereq(ccRegfileWrites);
 
     miscRegfileReads
-        .name(name() + ".misc_regfile_reads")
-        .desc("number of misc regfile reads")
         .prereq(miscRegfileReads);
 
     miscRegfileWrites
-        .name(name() + ".misc_regfile_writes")
-        .desc("number of misc regfile writes")
         .prereq(miscRegfileWrites);
 }
 
@@ -518,7 +492,7 @@ FullO3CPU<Impl>::tick()
     assert(!switchedOut());
     assert(drainState() != DrainState::Drained);
 
-    ++numCycles;
+    ++baseStats.numCycles;
     updateCycleCounters(BaseCPU::CPU_STATE_ON);
 
 //    activity = false;
@@ -556,7 +530,7 @@ FullO3CPU<Impl>::tick()
         } else if (!activityRec.active() || _status == Idle) {
             DPRINTF(O3CPU, "Idle!\n");
             lastRunningCycle = curCycle();
-            timesIdled++;
+            cpuStats.timesIdled++;
         } else {
             schedule(tickEvent, clockEdge(Cycles(1)));
             DPRINTF(O3CPU, "Scheduling next tick!\n");
@@ -701,7 +675,7 @@ FullO3CPU<Impl>::activateContext(ThreadID tid)
         // @todo: This is an oddity that is only here to match the stats
         if (cycles != 0)
             --cycles;
-        quiesceCycles += cycles;
+        cpuStats.quiesceCycles += cycles;
 
         lastActivatedCycle = curTick();
 
@@ -743,6 +717,15 @@ FullO3CPU<Impl>::haltContext(ThreadID tid)
     deactivateThread(tid);
     removeThread(tid);
 
+    // If this was the last thread then unschedule the tick event.
+    if (activeThreads.size() == 0) {
+        if (tickEvent.scheduled())
+        {
+            unscheduleTickEvent();
+        }
+        lastRunningCycle = curCycle();
+        _status = Idle;
+    }
     updateCycleCounters(BaseCPU::CPU_STATE_SLEEP);
 }
 
@@ -820,6 +803,15 @@ FullO3CPU<Impl>::removeThread(ThreadID tid)
     decode.clearStates(tid);
     rename.clearStates(tid);
     iew.clearStates(tid);
+
+    // Flush out any old data from the time buffers.
+    for (int i = 0; i < timeBuffer.getSize(); ++i) {
+        timeBuffer.advance();
+        fetchQueue.advance();
+        decodeQueue.advance();
+        renameQueue.advance();
+        iewQueue.advance();
+    }
 
     // at this step, all instructions in the pipeline should be already
     // either committed successfully or squashed. All thread-specific
@@ -1157,7 +1149,7 @@ template <class Impl>
 RegVal
 FullO3CPU<Impl>::readMiscReg(int misc_reg, ThreadID tid)
 {
-    miscRegfileReads++;
+    cpuStats.miscRegfileReads++;
     return this->isa[tid]->readMiscReg(misc_reg);
 }
 
@@ -1172,7 +1164,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setMiscReg(int misc_reg, RegVal val, ThreadID tid)
 {
-    miscRegfileWrites++;
+    cpuStats.miscRegfileWrites++;
     this->isa[tid]->setMiscReg(misc_reg, val);
 }
 
@@ -1180,7 +1172,7 @@ template <class Impl>
 RegVal
 FullO3CPU<Impl>::readIntReg(PhysRegIdPtr phys_reg)
 {
-    intRegfileReads++;
+    cpuStats.intRegfileReads++;
     return regFile.readIntReg(phys_reg);
 }
 
@@ -1188,7 +1180,7 @@ template <class Impl>
 RegVal
 FullO3CPU<Impl>::readFloatReg(PhysRegIdPtr phys_reg)
 {
-    fpRegfileReads++;
+    cpuStats.fpRegfileReads++;
     return regFile.readFloatReg(phys_reg);
 }
 
@@ -1197,7 +1189,7 @@ auto
 FullO3CPU<Impl>::readVecReg(PhysRegIdPtr phys_reg) const
         -> const VecRegContainer&
 {
-    vecRegfileReads++;
+    cpuStats.vecRegfileReads++;
     return regFile.readVecReg(phys_reg);
 }
 
@@ -1206,7 +1198,7 @@ auto
 FullO3CPU<Impl>::getWritableVecReg(PhysRegIdPtr phys_reg)
         -> VecRegContainer&
 {
-    vecRegfileWrites++;
+    cpuStats.vecRegfileWrites++;
     return regFile.getWritableVecReg(phys_reg);
 }
 
@@ -1214,7 +1206,7 @@ template <class Impl>
 auto
 FullO3CPU<Impl>::readVecElem(PhysRegIdPtr phys_reg) const -> const VecElem&
 {
-    vecRegfileReads++;
+    cpuStats.vecRegfileReads++;
     return regFile.readVecElem(phys_reg);
 }
 
@@ -1223,7 +1215,7 @@ auto
 FullO3CPU<Impl>::readVecPredReg(PhysRegIdPtr phys_reg) const
         -> const VecPredRegContainer&
 {
-    vecPredRegfileReads++;
+    cpuStats.vecPredRegfileReads++;
     return regFile.readVecPredReg(phys_reg);
 }
 
@@ -1232,7 +1224,7 @@ auto
 FullO3CPU<Impl>::getWritableVecPredReg(PhysRegIdPtr phys_reg)
         -> VecPredRegContainer&
 {
-    vecPredRegfileWrites++;
+    cpuStats.vecPredRegfileWrites++;
     return regFile.getWritableVecPredReg(phys_reg);
 }
 
@@ -1240,7 +1232,7 @@ template <class Impl>
 RegVal
 FullO3CPU<Impl>::readCCReg(PhysRegIdPtr phys_reg)
 {
-    ccRegfileReads++;
+    cpuStats.ccRegfileReads++;
     return regFile.readCCReg(phys_reg);
 }
 
@@ -1248,7 +1240,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setIntReg(PhysRegIdPtr phys_reg, RegVal val)
 {
-    intRegfileWrites++;
+    cpuStats.intRegfileWrites++;
     regFile.setIntReg(phys_reg, val);
 }
 
@@ -1256,7 +1248,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setFloatReg(PhysRegIdPtr phys_reg, RegVal val)
 {
-    fpRegfileWrites++;
+    cpuStats.fpRegfileWrites++;
     regFile.setFloatReg(phys_reg, val);
 }
 
@@ -1264,7 +1256,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setVecReg(PhysRegIdPtr phys_reg, const VecRegContainer& val)
 {
-    vecRegfileWrites++;
+    cpuStats.vecRegfileWrites++;
     regFile.setVecReg(phys_reg, val);
 }
 
@@ -1272,7 +1264,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setVecElem(PhysRegIdPtr phys_reg, const VecElem& val)
 {
-    vecRegfileWrites++;
+    cpuStats.vecRegfileWrites++;
     regFile.setVecElem(phys_reg, val);
 }
 
@@ -1281,7 +1273,7 @@ void
 FullO3CPU<Impl>::setVecPredReg(PhysRegIdPtr phys_reg,
                                const VecPredRegContainer& val)
 {
-    vecPredRegfileWrites++;
+    cpuStats.vecPredRegfileWrites++;
     regFile.setVecPredReg(phys_reg, val);
 }
 
@@ -1289,7 +1281,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setCCReg(PhysRegIdPtr phys_reg, RegVal val)
 {
-    ccRegfileWrites++;
+    cpuStats.ccRegfileWrites++;
     regFile.setCCReg(phys_reg, val);
 }
 
@@ -1297,7 +1289,7 @@ template <class Impl>
 RegVal
 FullO3CPU<Impl>::readArchIntReg(int reg_idx, ThreadID tid)
 {
-    intRegfileReads++;
+    cpuStats.intRegfileReads++;
     PhysRegIdPtr phys_reg = commitRenameMap[tid].lookup(
             RegId(IntRegClass, reg_idx));
 
@@ -1308,7 +1300,7 @@ template <class Impl>
 RegVal
 FullO3CPU<Impl>::readArchFloatReg(int reg_idx, ThreadID tid)
 {
-    fpRegfileReads++;
+    cpuStats.fpRegfileReads++;
     PhysRegIdPtr phys_reg = commitRenameMap[tid].lookup(
         RegId(FloatRegClass, reg_idx));
 
@@ -1369,7 +1361,7 @@ template <class Impl>
 RegVal
 FullO3CPU<Impl>::readArchCCReg(int reg_idx, ThreadID tid)
 {
-    ccRegfileReads++;
+    cpuStats.ccRegfileReads++;
     PhysRegIdPtr phys_reg = commitRenameMap[tid].lookup(
         RegId(CCRegClass, reg_idx));
 
@@ -1380,7 +1372,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setArchIntReg(int reg_idx, RegVal val, ThreadID tid)
 {
-    intRegfileWrites++;
+    cpuStats.intRegfileWrites++;
     PhysRegIdPtr phys_reg = commitRenameMap[tid].lookup(
             RegId(IntRegClass, reg_idx));
 
@@ -1391,7 +1383,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setArchFloatReg(int reg_idx, RegVal val, ThreadID tid)
 {
-    fpRegfileWrites++;
+    cpuStats.fpRegfileWrites++;
     PhysRegIdPtr phys_reg = commitRenameMap[tid].lookup(
             RegId(FloatRegClass, reg_idx));
 
@@ -1432,7 +1424,7 @@ template <class Impl>
 void
 FullO3CPU<Impl>::setArchCCReg(int reg_idx, RegVal val, ThreadID tid)
 {
-    ccRegfileWrites++;
+    cpuStats.ccRegfileWrites++;
     PhysRegIdPtr phys_reg = commitRenameMap[tid].lookup(
             RegId(CCRegClass, reg_idx));
 
@@ -1499,15 +1491,14 @@ FullO3CPU<Impl>::instDone(ThreadID tid, const DynInstPtr &inst)
     if (!inst->isMicroop() || inst->isLastMicroop()) {
         thread[tid]->numInst++;
         thread[tid]->threadStats.numInsts++;
-        committedInsts[tid]++;
-        system->totalNumInsts++;
+        cpuStats.committedInsts[tid]++;
 
         // Check for instruction-count-based events.
         thread[tid]->comInstEventQueue.serviceEvents(thread[tid]->numInst);
     }
     thread[tid]->numOp++;
     thread[tid]->threadStats.numOps++;
-    committedOps[tid]++;
+    cpuStats.committedOps[tid]++;
 
     probeInstCommit(inst->staticInst, inst->instAddr());
 }
@@ -1690,8 +1681,8 @@ FullO3CPU<Impl>::wakeCPU()
     // @todo: This is an oddity that is only here to match the stats
     if (cycles > 1) {
         --cycles;
-        idleCycles += cycles;
-        numCycles += cycles;
+        cpuStats.idleCycles += cycles;
+        baseStats.numCycles += cycles;
     }
 
     schedule(tickEvent, clockEdge());
