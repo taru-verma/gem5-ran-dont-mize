@@ -223,6 +223,10 @@ will catch attempts to use them and verify that they were used correctly. When
 running these tests under gem5, set the RUNNING_IN_GEM5 environment variable
 which will tell the test to expect the trigger mechanism to actually work.
 
+A junit test exists for the Java jar, in a file named 'OpsTest.java'. That test
+can be run on its own through its own main function, or through the junit
+framework.
+
 
 
 # Command line utility
@@ -341,15 +345,35 @@ library only if that trigger mechanism is supported for that ABI.
 
 # Java jar
 
-In your java source, import the gem5Op class which will have methods for
-calling each of the gem5 operations. The .so library will be loaded
-automatically.
+In your java source, import the gem5Op class.
 
-```shell
+```java
 import gem5.Ops
 ```
 
-These methods will all use the magic instruction based trigger mechanism.
+This class provides a static map named callTypes which map from each of the
+call type names ("addr", "inst", or "semi") to an Ops instance. That instance
+will provide a set of methods which trigger each of the gem5 operations using
+the requested trigger mechanism. The call type "default" maps to whatever the
+default call type is for the current ABI.
+
+```shell
+gem5.Ops gem5_ops = gem5.Ops.callTypes.get("default");
+long sum = gem5_ops.sum(1, 2, 3, 4, 5, 6);
+```
+
+To configure the address based trigger mechanism, you can use these static
+methods.
+
+void setAddr(long addr);
+Set the address for the "magic" address region.
+
+void mapMem();
+Map the "magic" physical address region into the process' address space, likely
+by mmapping the "/dev/mem" device file.
+
+void unmapMem();
+Unmap the "magic" physical address region that was previously mapped.
 
 
 

@@ -37,13 +37,44 @@
 
 package gem5;
 
+import java.io.*;
+import java.util.*;
+
 /**
  * Java class to implement JNI for m5Ops
  */
 
 public class Ops {
+    private Ops() {}
+
+    private static native void setupCallTypes();
+    private long dispatchTablePtr;
+
+    private static Map<String, Ops> _callTypes;
+    public static final Map<String, Ops> callTypes;
+
+    public static native void setAddr(long addr);
+    public static native void mapMem();
+    public static native void unmapMem();
+
     static {
-        System.loadLibrary("gem5Ops");
+        try {
+            File temp_lib = File.createTempFile("gem5Ops", ".so");
+            temp_lib.deleteOnExit();
+
+            InputStream in = Ops.class.getResourceAsStream("/libgem5Ops.so");
+            byte[] buffer = new byte[in.available()];
+            in.read(buffer);
+            OutputStream out = new FileOutputStream(temp_lib);
+            out.write(buffer);
+
+            System.load(temp_lib.getAbsolutePath());
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        setupCallTypes();
+        callTypes = Collections.unmodifiableMap(_callTypes);
     }
 
     public native void arm(long address);
@@ -73,5 +104,4 @@ public class Ops {
     public native void panic();
     public native void work_begin(long workid, long threadid);
     public native void work_end(long workid, long threadid);
-
 }

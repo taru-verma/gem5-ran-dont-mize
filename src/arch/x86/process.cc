@@ -326,7 +326,7 @@ X86_64Process::initState()
 
             tc->setMiscReg(MISCREG_TR, tssSel);
             tc->setMiscReg(MISCREG_TR_BASE, tss_base_addr);
-            tc->setMiscReg(MISCREG_TR_EFF_BASE, 0);
+            tc->setMiscReg(MISCREG_TR_EFF_BASE, tss_base_addr);
             tc->setMiscReg(MISCREG_TR_LIMIT, tss_limit);
             tc->setMiscReg(MISCREG_TR_ATTR, tss_attr);
 
@@ -343,8 +343,8 @@ X86_64Process::initState()
             efer.lme = 1; // Enable long mode.
             efer.lma = 1; // Activate long mode.
             efer.nxe = 1; // Enable nx support.
-            efer.svme = 0; // Enable svm support for now.
-            efer.ffxsr = 0; // Turn on fast fxsave and fxrstor.
+            efer.svme = 0; // Disable svm support for now.
+            efer.ffxsr = 0; // Disable fast fxsave and fxrstor.
             tc->setMiscReg(MISCREG_EFER, efer);
 
             //Set up the registers that describe the operating mode.
@@ -352,8 +352,8 @@ X86_64Process::initState()
             cr0.pg = 1; // Turn on paging.
             cr0.cd = 0; // Don't disable caching.
             cr0.nw = 0; // This is bit is defined to be ignored.
-            cr0.am = 1; // No alignment checking
-            cr0.wp = 1; // Supervisor mode can write read only pages
+            cr0.am = 0; // No alignment checking
+            cr0.wp = 0; // Supervisor mode can write read only pages
             cr0.ne = 1;
             cr0.et = 1; // This should always be 1
             cr0.ts = 0; // We don't do task switching, so causing fp exceptions
@@ -372,7 +372,7 @@ X86_64Process::initState()
 
             CR4 cr4 = 0;
             //Turn on pae.
-            cr4.osxsave = 0; // Enable XSAVE and Proc Extended States
+            cr4.osxsave = 0; // Disable XSAVE and Proc Extended States
             cr4.osxmmexcpt = 0; // Operating System Unmasked Exception
             cr4.osfxsr = 1; // Operating System FXSave/FSRSTOR Support
             cr4.pce = 0; // Performance-Monitoring Counter Enable
@@ -387,7 +387,7 @@ X86_64Process::initState()
 
             tc->setMiscReg(MISCREG_CR4, cr4);
 
-            CR4 cr8 = 0;
+            CR8 cr8 = 0;
             tc->setMiscReg(MISCREG_CR8, cr8);
 
             tc->setMiscReg(MISCREG_MXCSR, 0x1f80);

@@ -39,6 +39,8 @@ googletest_dir = ext_dir.Dir('googletest')
 src_dir = Dir('src')
 build_dir = Dir('build')
 
+main.SConsignFile(build_dir.File("sconsign").abspath)
+
 def abspath(d):
     return os.path.abspath(str(d))
 
@@ -56,6 +58,7 @@ else:
     main.Append(CXXFLAGS=[ '-O2' ])
     main.Append(CCFLAGS=[ '-O2' ])
 main.Append(CPPPATH=[ common_include ])
+main.Append(CXXFLAGS=[ '-std=c++14' ])
 
 if not GetOption('verbose'):
     # A functor which returns a shorter summary string to replace the normal
@@ -77,6 +80,7 @@ if not GetOption('verbose'):
     main['ASPPCOMSTR'] = ComStr('ASPP')
     main['ARCOMSTR'] = ComStr('AR')
     main['RANLIBCOMSTR'] = ComStr('RANLIB')
+    main['JARCOMSTR'] = ComStr('JAR')
 
     def MakeAction(action, string, *args, **kwargs):
         def func(target, source, env, executor):
@@ -91,12 +95,47 @@ else:
 main['ENV']['PATH'] = os.environ['PATH']
 # Pass through terminal information to, for instance, enable color output.
 main['ENV']['TERM'] = os.environ['TERM']
+# Pass through the java CLASSPATH (if it exists) so we can find libraries.
+main['ENV']['CLASSPATH'] = os.environ.get('CLASSPATH', '')
 
 # Detect some dependencies of some forms of the m5 utility/library.
+def CheckForJavaPkg(context, pkg_name):
+    context.Message('Checking for java package %s...' % pkg_name)
+    result = main['HAVE_JAVA'] and \
+             context.TryAction('${JAVAC} ${JAVACFLAGS} ${SOURCES}',
+                               'import %s.*;' % pkg_name, '.java')[0]
+    context.Result(result)
+    return result
+
+def CheckForPkgConfigPackage(context, package):
+    context.Message('Checking for pkg-config package %s...' % package)
+    result = main['HAVE_PKG_CONFIG'] and \
+             os.system('pkg-config --exists %s' % package) == 0
+    context.Result(result)
+    return result;
+
+conf = Configure(main, conf_dir=build_dir.Dir('.scons_config'),
+        log_file=build_dir.File('scons_config.log'), custom_tests={
+        'CheckForJavaPkg' : CheckForJavaPkg,
+        'CheckForPkgConfigPackage' : CheckForPkgConfigPackage
+})
 main['HAVE_JAVA'] = all(key in main for key in ('JAVAC', 'JAR'))
-main['HAVE_PKG_CONFIG'] = main.Detect('pkg-config') is not None
-main['HAVE_LUA51'] = (main['HAVE_PKG_CONFIG'] and
-                      os.system('pkg-config --exists lua51') == 0)
+if not main['HAVE_JAVA']:
+    print('javac and/or jar not detected, not building java wrapper.')
+
+main['HAVE_JUNIT'] = conf.CheckForJavaPkg('org.junit')
+if main['HAVE_JAVA'] and not main['HAVE_JUNIT']:
+    print('junit test framework not found, not build java wrapper test')
+
+main['HAVE_PKG_CONFIG'] = conf.CheckProg('pkg-config')
+if not main['HAVE_PKG_CONFIG']:
+    print("pkg-config not detected, can't check for lua51.")
+
+main['HAVE_LUA51'] = conf.CheckForPkgConfigPackage('lua51')
+if not main['HAVE_LUA51']:
+    print('lua 5.1 not detected, not building lua wrapper.')
+
+conf.Finish()
 
 # Put the sconsign file in the build dir so everything can be deleted at once.
 main.SConsignFile(os.path.join(abspath(build_dir), 'sconsign'))
@@ -197,15 +236,23 @@ for root, dirs, files in os.walk(abspath(src_dir)):
         #
         # This also considers scons command line settings which may look like
         # environment variables, but are set after "scons" on the command line.
-        def get_abi_opt(name, default):
+        def _extract_abi_opt_val(name, default):
             var_name = env.subst('${ABI}.%s' % name)
-            env[name] = os.environ.get(
-                    var_name, ARGUMENTS.get(var_name, default))
+            return os.environ.get(var_name, ARGUMENTS.get(var_name, default))
+        def get_abi_opt(name, default):
+            env[name] = _extract_abi_opt_val(name, default)
+        def append_abi_opt(name):
+            env.Append(**{ name: _extract_abi_opt_val(name, '') })
 
         # Process the ABI's settings in the SConsopts file, storing them
         # in a copy of the primary environment.
         env.SConscript(Dir(root).File('SConsopts'),
                        exports=[ 'env', 'get_abi_opt' ])
+
+        # The user can pass extra build flags for each ABI
+        append_abi_opt('CCFLAGS')
+        append_abi_opt('CXXFLAGS')
+        append_abi_opt('LINKFLAGS')
 
         # Check if this version of QEMU is available for running unit tests.
         env['HAVE_QEMU'] = env.Detect('${QEMU}') is not None
