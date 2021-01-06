@@ -1,15 +1,18 @@
 ----- Working Setup for KVM -----
-1. Download latest gem5 from source
-2. Checkout branch `develop` commit 9a01d3e92765f14055756457403bbe4ecfce2d5b (it has the latest `kvm` fix 12278 available) 
+1. Download latest gem5 from gem5-ran-dont-mize repo
+2. Checkout branch `ran-dont-mize`
+    2.1 If using official gem5 repo `develop` branch, checkout
+        2.1.1 commit 9e97dbe8c8a77643197b28737f47d9ef64d8bb17 - latest version with more fixes; freezing repo here unless there are bugs
+        2.1.2 commit 9a01d3e92765f14055756457403bbe4ecfce2d5b - first version which worked and had the `kvm` fix 12278 available
 3. Build gem5.opt inside the docker image
-    cmd: docker run --volume ~/research/randomized-caches/gem5:/gem5 -it gem5-develop-20.0.4-kvm-ready
+    cmd: docker run --volume /home/taru/research/randomized-caches/experiments-dir:/experiments-dir -it gem5-develop-20.0.4-v2
 4. Build linux image and kernel outside the docker image
     4.1. Get packer files for linux image from gem5art-experiments repo (branch `gem5-20-1-boot-tests`, image `ubuntu-18.04.2-server-amd64.iso`)
     4.2. Get linux kernel config from gem5art-experiments (tested with `v5.2.3`)
-5. Run gem5 docker image `gem5-develop-20.0.4-kvm-ready` with `--privileged` flag for kvm and as root to access `/dev/kvm`
-    cmd: docker run --volume /home/taru/research/randomized-caches/experiments-dir/gem5:/gem5 -it --privileged gem5-develop-20.0.4-kvm-ready
+5. Run gem5 docker image `gem5-develop-20.0.4-kvm-ready` as root and with the `--privileged` flag to access `/dev/kvm`
+    cmd: docker run --volume /home/taru/research/randomized-caches/experiments-dir:/experiments-dir -it --privileged gem5-develop-20.0.4-v2
 6. Test KVM boot with default boot tests (confirmed working for init and systemd)
-    cmd: build/X86/gem5.opt tests/gem5/x86-boot-tests/run_exit.py --disk=./disk-image/boot-exit/boot-exit-image/boot-exit --kernel=./linux/vmlinux --cpu-type=kvm --num-cpus=1 --boot-type=init
+    cmd: build/X86/gem5.opt tests/gem5/x86-boot-tests/run_exit.py --disk=./disk-image/boot-exit/boot-exit-image/boot-exit --kernel=./linux/vmlinux-v5.2.3 --cpu-type=kvm --num-cpus=1 --boot-type=init
 
 
 ===== Old notes =====
@@ -27,7 +30,7 @@
 1. Build m5 with scons - Small x for x86, unlike gem5 binary
     cmd: scons build/x86/out/m5
 2. For gem5-art boot scripts - update boot-exit script with correct path for m5
-    2.a. NOTE - only use the image specified in the script, as the boot process won't work with newer (and potentially older) versions
+    2.a. NOTE - only use the image specified in the script, as the boot process commands need to be changed for newer (and potentially older) versions
 
 ----- Other notes -----
 * Run the docker image as root with the `--privileged` flag after `-it` and before `[image_name]` for kvm support inside the docker container

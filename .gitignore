@@ -34,3 +34,7 @@ disk-image/boot-exit/boot-exit-image/
 disk-image/packer_cache
 disk-image/packer
 linux/
+.vscode/
+*.code-workspace
+sc-results/
+sc-tests/

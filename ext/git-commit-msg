@@ -190,5 +190,5 @@ _gen_ChangeId() {
 
 add_ChangeId
 
-# Perform gem5-specific commit message style check
-./util/git-commit-msg.py $MSG
+## Perform gem5-specific commit message style check
+#./util/git-commit-msg.py $MSG
