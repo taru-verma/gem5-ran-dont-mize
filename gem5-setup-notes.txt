@@ -1,3 +1,12 @@
+----- Active issues -----
+1. How do I get a 64-bit block from the given cipher implementation? Where can I get one? 
+2. How to reconstruct address from given tag and set? 
+    2.1 This will only work when (1) is resolved.
+    2.2 Basically instead of just going in the indexing policy, the address needs to be
+        encrypted beforehand, so that the tag and the set can be stored (I think 
+        base-assoc-impl or something like that - find references to regenerateAddr). 
+        Then it'll be easy to reconstruct addresses with the tag and the set. 
+
 ----- Working Setup for KVM -----
 1. Download latest gem5 from gem5-ran-dont-mize repo
 2. Checkout branch `ran-dont-mize`
