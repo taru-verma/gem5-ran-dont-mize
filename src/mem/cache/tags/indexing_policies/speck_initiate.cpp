@@ -20,45 +20,36 @@
  * SOFTWARE.
  */
 
-#include "speck_initiate.h"
+//#include "speck_initiate.h"
 #include "speck.h"
 #include <stdio.h>
-#include <string.h>
-#include <cstdlib>
-#include <random>
-#include <bits/byteswap.h>
+#include <byteswap.h>
 #include <inttypes.h>
+#include <string.h>
+#include <math.h>
 
-static const uint8_t s_key_128256_stream[32] = {
-        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+#define NUM_BLOCKS 8    // 8 * (8 bits = 64 bits address
+#define ADDR_SIZE 16    // Address from gem5 of type uint64_t, 16 * 4bits in each char
+
+static const uint64_t s_key[2] = {0x0706050403020100, 0x0f0e0d0c0b0a0908};
+static const uint8_t s_key_stream[16] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 };
+uint32_t plain_text[NUM_BLOCKS];
+uint32_t cipher_text[2] = {0x0, 0x0};
+uint32_t decrypted_text[2] = {0x0, 0x0};
 
-uint8_t ptx_stream[16];
-
-void speck_show_array(const char *explain, const uint8_t *array, size_t len) {
-    printf("%20s ", explain);
-    for(int i=len-1; i >= 0; i--) {
-        printf("%02x ", array[i]);
-    }
-    printf("\n");
-}
-
-uint8_t * speck_prepare_address(const uint64_t addr) {
-    uint64_t swapped = __bswap_constant_64(addr);
-    printf("\tReceived address (big endian): %" PRIu64 ", \
-        Swapped address (little endian): %" PRIu64 "\n", addr, swapped);
-
-    char addr_hex[17], swapped_hex[17];
+uint32_t * speck_prepare_address(const uint64_t addr) {
+    memset(plain_text, 0x0, NUM_BLOCKS * sizeof(uint32_t));
+ 
+    char addr_hex[ADDR_SIZE + 1];
     sprintf(addr_hex, "%016lx", addr);
-    addr_hex[16] = 0;
-    sprintf(swapped_hex, "%016lx", swapped);
-    swapped_hex[16] = 0;
-    printf("\tReceived address in hex: %s, \
-        Swapped address in hex: %s\n", addr_hex, swapped_hex);
+    addr_hex[ADDR_SIZE] = 0;
+    printf("\tReceived address: %" PRIu64 ", %s\n", addr, addr_hex);
 
-    for (int j = 0; *(swapped_hex + j) != '\0'; j += 2)
+    for (int j = 0; j < ADDR_SIZE;  j += 2)
     {
-        char value1 = *(swapped_hex + j), value2 = *(swapped_hex + j+1);
+        char value1 = *(addr_hex + j), value2 = *(addr_hex + j + 1);
         int num1 = 0, num2 = 0;
         if (value1 >= '0' && value1 <= '9')
             num1 = value1 - '0';
@@ -68,79 +59,97 @@ uint8_t * speck_prepare_address(const uint64_t addr) {
             num2 = value2 - '0';
         else if (value2 >= 'a' && value2 <= 'f')
             num2 = 10 + (value2 - 'a');
-        ptx_stream[7 - j/2] = 16 * num1 + num2;
-    }
-    for (int i = 8; i < 16; ++i)
-        ptx_stream[i] = 0;
 
-    return ptx_stream;
+        plain_text[(NUM_BLOCKS - 1) - j/2] = 16 * num1 + num2;
+    }
+
+    return plain_text;
 }
 
-uint8_t * speck_addr_encrypt(uint8_t *ptx_stream, size_t siz) {
-    speck_ctx_t *ctx = speck_init(SPECK_ENCRYPT_TYPE_128_256, s_key_128256_stream, sizeof(s_key_128256_stream));
-    if(!ctx)
-    {
-        printf("\t*** ERROR: ctx not initialized\n");
-        return NULL;
-    }
+uint32_t * speck_addr_encrypt(uint32_t plain_text[2]) {
+    speck_ctx_t *ctx = speck_init(SPECK_ENCRYPT_TYPE_128_128, s_key_stream, sizeof(s_key_stream));
+    if(!ctx) return NULL;
 
-    uint8_t *plain_text = (uint8_t*) calloc(1, siz);
-    uint8_t *encrypted_text = (uint8_t*) calloc(1, siz);
-    memcpy(plain_text, ptx_stream, siz);
-    speck_ecb_encrypt(ctx, plain_text, encrypted_text, siz);
+    speck_encrypt(ctx, plain_text, cipher_text);
+    
+    printf("%20s0x%08" PRIx64 " 0x%08" PRIx64 "\n", "key : ", s_key[1], s_key[0]);
+    printf("%20s0x%08" PRIx32 " 0x%08" PRIx32 "\n", "plain : ", plain_text[1], plain_text[0]);
+    printf("%20s0x%08" PRIx32 " 0x%08" PRIx32 "\n", "encrypted : ", cipher_text[1], cipher_text[0]);
 
-    free(plain_text);
     speck_finish(&ctx);
-    return encrypted_text;
+
+    return cipher_text;
 }
 
-uint8_t * speck_addr_decrypt(uint8_t *ctx_stream, size_t siz) {
-    speck_ctx_t *ctx = speck_init(SPECK_ENCRYPT_TYPE_128_256, s_key_128256_stream, sizeof(s_key_128256_stream));
-    if(!ctx)
-    {
-        printf("\t*** ERROR: ctx not initialized\n");
-        return NULL;
-    }
+uint32_t * speck_addr_decrypt(uint32_t cipher_text[2]) {
+    speck_ctx_t *ctx = speck_init(SPECK_ENCRYPT_TYPE_128_128, s_key_stream, sizeof(s_key_stream));
+    if(!ctx) return NULL;
 
-    uint8_t *decrypted_text = (uint8_t*) calloc(1, siz);
-    speck_ecb_decrypt(ctx, ctx_stream, decrypted_text, siz);
+    speck_decrypt(ctx, cipher_text, decrypted_text);
+    printf("%20s0x%08" PRIx64 " 0x%08" PRIx64 "\n", "key : ", s_key[1], s_key[0]);
+    printf("%20s0x%08" PRIx32 " 0x%08" PRIx32 "\n", "encrypted : ", cipher_text[1], cipher_text[0]);
+    printf("%20s0x%08" PRIx32 " 0x%08" PRIx32 "\n", "decrypted : ", decrypted_text[1], decrypted_text[0]);
 
     speck_finish(&ctx);
+
     return decrypted_text;
 }
 
+uint64_t speck_encrypt_wrapper(const uint64_t addr) {
+    uint32_t *ptx_address; 
+    uint32_t *ptx = (uint32_t*) calloc(2, sizeof(uint32_t));
+    uint32_t *ctx = (uint32_t*) calloc(2, sizeof(uint32_t));
+    ptx[1] = 0x0; ptx[0] = 0x0;
+    ctx[1] = 0x0; ctx[0] = 0x0;
+
+    ptx_address = speck_prepare_address(addr);
+    for (int i = NUM_BLOCKS - 1; i >= 0; i--)
+        ptx[i/(NUM_BLOCKS/2)] += ptx_address[i] * pow(256, (i%(NUM_BLOCKS/2)));
+
+    printf("\tEncrypting: \n");
+    ctx = speck_addr_encrypt(ptx);
+    
+    uint64_t encrypted_addr = 0;
+    encrypted_addr = ctx[1] * (uint64_t)pow(256, 4) + ctx[0];
+    printf("\tEncrypted Address: %" PRIu64 ", Set: %d\n", encrypted_addr, (int)(encrypted_addr >> 6) & 63);
+    printf("\n");
+
+    return encrypted_addr;
+}
+
+uint64_t speck_decrypt_wrapper(const uint64_t addr) {
+    uint32_t *ctx_address; 
+    uint32_t *ctx = (uint32_t*) calloc(2, sizeof(uint32_t));
+    uint32_t *dtx = (uint32_t*) calloc(2, sizeof(uint32_t));
+    ctx[1] = 0x0; ctx[0] = 0x0;
+    dtx[1] = 0x0; dtx[0] = 0x0;
+
+    ctx_address = speck_prepare_address(addr);
+    for (int i = NUM_BLOCKS - 1; i >= 0; i--)
+        ctx[i/(NUM_BLOCKS/2)] += ctx_address[i] * pow(256, (i%(NUM_BLOCKS/2)));
+ 
+    printf("\tEncrypting: \n");
+    dtx = speck_addr_decrypt(ctx);
+
+    uint64_t decrypted_addr = 0;
+    decrypted_addr = dtx[1] * (uint64_t)pow(256, 4) + dtx[0];
+    printf("\tDecrypted Address: %" PRIu64 ", Set: %d\n", decrypted_addr, (int)(decrypted_addr >> 6) & 63);
+    printf("\n");
+
+    return decrypted_addr;    
+}
+
 void speck_dummy_landing() {
-    printf("Hello World from Speck\n");
+    printf("Hello World from Speck!\n");
 }
 
 /*
 int main() {
-    printf("Speck Encryption\n");
-    size_t siz = 16;
-    uint8_t *plain_text = (uint8_t*) calloc(1, siz);
-    uint8_t *encrypted_text = (uint8_t*) calloc(1, siz);
-    uint8_t *decrypted_text = (uint8_t*) calloc(1, siz);
+    uint64_t addr = 0x9700c;
+    uint64_t getaddr = speck_encrypt_wrapper(0x9700c);
+    uint64_t retaddr = speck_decrypt_wrapper(getaddr);
 
-    plain_text = speck_prepare_address(618508);
-    speck_show_array("\tplain text     :", plain_text, siz);
-
-    encrypted_text = speck_addr_encrypt(plain_text, siz);
-    speck_show_array("\tencrypted text :", encrypted_text, siz);
-
-    uint64_t addr = 0;
-    for (int i = 0; i < 7; ++i)
-        addr += encrypted_text[i] * pow(256, i);
-    printf("\tFinal Addr: %" PRIx64 ", Set: %" PRIu64 "\n", addr, (addr >> 6) & 63);
-
-    decrypted_text = speck_addr_decrypt(encrypted_text, siz);
-    speck_show_array("\tdecrypted text :", decrypted_text, siz);
-
-    for (int i = 0; i < siz; i++)
-        if (plain_text[i] != decrypted_text[i])
-            printf("\tdecrypted error idx:%d  0x%02x != 0x%02x\n", i, plain_text[i], decrypted_text[i]);
-
-    free(decrypted_text);
-    free(encrypted_text);
+    printf("\t%s\n", addr == retaddr ? "Successful" : "Unsuccessful");
 
     return 0;
 }

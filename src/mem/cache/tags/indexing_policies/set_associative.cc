@@ -60,37 +60,25 @@ SetAssociative::SetAssociative(const Params &p)
 uint32_t
 SetAssociative::extractSet(const Addr addr) const
 {
-    ////speck_dummy_landing();
 
     printf("Address: %" PRIu64 ", %" PRIx64 "\n", addr, addr);
 
+    //// Shifting sets
     //uint32_t extracted_set = (addr >> setShift) & setMask;
+    //printf("\textracted_set: %u\n", (addr >> setShift) & setMask);
     //extracted_set = (extracted_set + 9) % 64;
-    //printf("\textracted_set: %u\n", extracted_set);
+    //printf("\tshifted_set: %u\n", extracted_set);
     //return extracted_set;
 
-    //printf("\textracted_set: %lu\n", (addr >> setShift) & setMask);
+    // Encrypting sets
+    //speck_dummy_landing();
+    uint64_t getaddr = speck_encrypt_wrapper(addr);
+    uint64_t retaddr = speck_decrypt_wrapper(getaddr);
 
-    size_t siz = 16;
-    uint8_t *plain_text = (uint8_t*) calloc(1, siz);
-    uint8_t *encrypted_text = (uint8_t*) calloc(1, siz);
-    //uint8_t *decrypted_text = (uint8_t*) calloc(1, siz);
+    printf("\t%s\n", addr == retaddr ? "Successful" : "Unsuccessful");
 
-    plain_text = speck_prepare_address(addr);
-    speck_show_array("\tplain text     :", plain_text, siz);
-
-    encrypted_text = speck_addr_encrypt(plain_text, siz);
-    speck_show_array("\tencrypted text :", encrypted_text, siz);
-    uint64_t new_addr = 0;
-    for (int i = 0; i < 7; ++i)
-        new_addr += encrypted_text[i] * pow(256, i);
-    printf("\tFinal Addr: %" PRIx64 ", Set: %" PRIu64 "\n", new_addr, (new_addr >> 6) & 63);
-
-    //decrypted_text = speck_addr_decrypt(encrypted_text, siz);
-    //speck_show_array("\tdecrypted text :", decrypted_text, siz);
-
-    return (new_addr >> setShift) & setMask;
-    //return (addr >> setShift) & setMask;
+    // Default return
+    return (addr >> setShift) & setMask;
 }
 
 Addr
