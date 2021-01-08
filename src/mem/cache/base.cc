@@ -62,6 +62,8 @@
 #include "params/WriteAllocator.hh"
 #include "sim/core.hh"
 
+#include "mem/cache/tags/speck_initiate.h"
+
 using namespace std;
 
 BaseCache::CacheResponsePort::CacheResponsePort(const std::string &_name,
@@ -503,6 +505,7 @@ BaseCache::recvTimingResp(PacketPtr pkt)
         // response is not a cache invalidate, we promote targets that
         // were deferred as we couldn't guarrantee a writable copy
         mshr->promoteWritable();
+        printf("\t\t\tPromoted to Writable\n");
     }
 
     serviceMSHRTargets(mshr, pkt, blk);
@@ -1453,7 +1456,11 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
     // Block is guaranteed to be valid at this point
     assert(blk->isValid());
     assert(blk->isSecure() == is_secure);
-    assert(regenerateBlkAddr(blk) == addr);
+
+    // Encrypt address for comparing to encrypted block address, zero out the block offset
+    Addr encrypted_addr = speck_encrypt_wrapper(addr);
+    encrypted_addr = encrypted_addr & ~(Addr(blkSize - 1));
+    assert(regenerateBlkAddr(blk) == encrypted_addr);
 
     blk->setCoherenceBits(CacheBlk::ReadableBit);
 
@@ -1772,6 +1779,8 @@ BaseCache::nextQueueReadyTime() const
 bool
 BaseCache::sendMSHRQueuePacket(MSHR* mshr)
 {
+    printf("*** sendMSHRQueuePacket\n");
+
     assert(mshr);
 
     // use request from 1st target

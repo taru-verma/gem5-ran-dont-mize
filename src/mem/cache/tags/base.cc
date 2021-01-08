@@ -55,6 +55,8 @@
 #include "sim/sim_exit.hh"
 #include "sim/system.hh"
 
+#include "mem/cache/tags/speck_initiate.h"
+
 BaseTags::BaseTags(const Params &p)
     : ClockedObject(p), blkSize(p.block_size), blkMask(blkSize - 1),
       size(p.size), lookupLatency(p.tag_latency),
@@ -76,12 +78,16 @@ BaseTags::findBlockBySetAndWay(int set, int way) const
 CacheBlk*
 BaseTags::findBlock(Addr addr, bool is_secure) const
 {
+    // Encrypt address for access into the cache, zero out the block offset
+    Addr encrypted_addr = speck_encrypt_wrapper(addr);
+    encrypted_addr = encrypted_addr & ~(Addr(blkSize - 1));
+
     // Extract block tag
-    Addr tag = extractTag(addr);
+    Addr tag = extractTag(encrypted_addr);
 
     // Find possible entries that may contain the given address
     const std::vector<ReplaceableEntry*> entries =
-        indexingPolicy->getPossibleEntries(addr);
+        indexingPolicy->getPossibleEntries(encrypted_addr);
 
     // Search for block
     for (const auto& location : entries) {
@@ -108,8 +114,12 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     assert(requestor_id < system->maxRequestors());
     stats.occupancies[requestor_id]++;
 
+    // Encrypt address for access into the cache, zero out the block offset
+    Addr encrypted_addr = speck_encrypt_wrapper(pkt->getAddr());
+    encrypted_addr = encrypted_addr & ~(Addr(blkSize - 1));
+
     // Insert block with tag, src requestor id and task id
-    blk->insert(extractTag(pkt->getAddr()), pkt->isSecure(), requestor_id,
+    blk->insert(extractTag(encrypted_addr), pkt->isSecure(), requestor_id,
                 pkt->req->taskId());
 
     // Check if cache warm up is done

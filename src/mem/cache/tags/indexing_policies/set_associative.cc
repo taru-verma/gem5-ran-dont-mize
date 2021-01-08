@@ -48,8 +48,6 @@
 
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 
-#include "speck_initiate.h"
-
 #include <math.h>
 
 SetAssociative::SetAssociative(const Params &p)
@@ -60,24 +58,8 @@ SetAssociative::SetAssociative(const Params &p)
 uint32_t
 SetAssociative::extractSet(const Addr addr) const
 {
+    printf("Address: %" PRIx64 "\n", addr);
 
-    printf("Address: %" PRIu64 ", %" PRIx64 "\n", addr, addr);
-
-    //// Shifting sets
-    //uint32_t extracted_set = (addr >> setShift) & setMask;
-    //printf("\textracted_set: %u\n", (addr >> setShift) & setMask);
-    //extracted_set = (extracted_set + 9) % 64;
-    //printf("\tshifted_set: %u\n", extracted_set);
-    //return extracted_set;
-
-    // Encrypting sets
-    //speck_dummy_landing();
-    uint64_t getaddr = speck_encrypt_wrapper(addr);
-    uint64_t retaddr = speck_decrypt_wrapper(getaddr);
-
-    printf("\t%s\n", addr == retaddr ? "Successful" : "Unsuccessful");
-
-    // Default return
     return (addr >> setShift) & setMask;
 }
 
@@ -86,8 +68,8 @@ SetAssociative::regenerateAddr(const Addr tag, const ReplaceableEntry* entry)
                                                                         const
 {
     //return (tag << tagShift) | (((entry->getSet() - 9) % 64) << setShift);
-    printf("\t\tTag: %" PRIu64 ", ShiftedTag: %" PRIu64 ", set: %" PRIu32 " \n", tag, (tag << tagShift), entry->getSet());
-    printf("\t\tAddress returned is: %" PRIu64 "\n", (tag << tagShift) | (entry->getSet() << setShift));
+    printf("\t\tTag: %" PRIx64 ", ShiftedTag: %" PRIx64 ", set: %" PRIu32 " \n", tag, (tag << tagShift), entry->getSet());
+    printf("\t\tAddress returned is: %" PRIx64 "\n", (tag << tagShift) | (entry->getSet() << setShift));
     return (tag << tagShift) | (entry->getSet() << setShift);
 }
 
