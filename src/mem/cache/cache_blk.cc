@@ -66,6 +66,12 @@ CacheBlk::insert(const Addr tag, const bool is_secure,
 }
 
 void
+CacheBlk::update_set(const Addr orig_set)
+{
+    TaggedEntry::update_set(orig_set);
+}
+
+void
 CacheBlkPrintWrapper::print(std::ostream &os, int verbosity,
                             const std::string &prefix) const
 {

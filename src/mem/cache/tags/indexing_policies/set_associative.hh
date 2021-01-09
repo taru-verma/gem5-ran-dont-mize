@@ -119,10 +119,11 @@ class SetAssociative : public BaseIndexingPolicy
      * Regenerate an entry's address from its tag and assigned set and way.
      *
      * @param tag The tag bits.
+     * @param orig_set The original set.
      * @param entry The entry.
      * @return the entry's original addr value.
      */
-    Addr regenerateAddr(const Addr tag, const ReplaceableEntry* entry) const
+    Addr regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry) const
                                                                    override;
 };
 

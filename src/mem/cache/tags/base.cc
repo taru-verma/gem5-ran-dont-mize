@@ -78,12 +78,13 @@ BaseTags::findBlockBySetAndWay(int set, int way) const
 CacheBlk*
 BaseTags::findBlock(Addr addr, bool is_secure) const
 {
-    // Encrypt address for access into the cache, zero out the block offset
-    Addr masked_addr = addr >> 6;
-    Addr encrypted_addr = speck_encrypt_wrapper(masked_addr);
+    // Encrypt address for getting the set
+    Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
 
     // Extract block tag
-    Addr tag = extractTag(encrypted_addr);
+    Addr tag = extractTag(addr);
+
+    printf("findBlock -> addr: %" PRIx64 ", actual set: %" PRIx64 ", encrypted: %" PRIx64 "\n", addr, ((addr >> 6) & 63), encrypted_addr);
 
     // Find possible entries that may contain the given address
     const std::vector<ReplaceableEntry*> entries =
@@ -114,13 +115,16 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     assert(requestor_id < system->maxRequestors());
     stats.occupancies[requestor_id]++;
 
-    // Encrypt address for access into the cache, zero out the block offset
-    Addr masked_addr = pkt->getAddr() >> 6;
-    Addr encrypted_addr = speck_encrypt_wrapper(masked_addr);
+    Addr addr = pkt->getAddr();
+
+    printf("** Inserting Block **\n");
 
     // Insert block with tag, src requestor id and task id
-    blk->insert(extractTag(encrypted_addr), pkt->isSecure(), requestor_id,
+    blk->insert(extractTag(addr), pkt->isSecure(), requestor_id,
                 pkt->req->taskId());
+    blk->update_set((addr >> 6) & 63);
+
+    printf("insertBlock -> addr: %" PRIx64 ", actual set: %" PRIx64 ", encrypted set: %" PRIx32 " updated_set: %" PRIx64 "\n", addr, ((addr >> 6) & 63), blk->getSet(), blk->getOrigSet());
 
     // Check if cache warm up is done
     if (!warmedUp && stats.tagsInUse.value() >= warmupBound) {

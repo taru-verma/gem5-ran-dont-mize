@@ -331,7 +331,7 @@ SectorTags::regenerateBlkAddr(const CacheBlk* blk) const
     const SectorSubBlk* blk_cast = static_cast<const SectorSubBlk*>(blk);
     const SectorBlk* sec_blk = blk_cast->getSectorBlock();
     const Addr sec_addr =
-        indexingPolicy->regenerateAddr(blk->getTag(), sec_blk);
+        indexingPolicy->regenerateAddr(blk->getTag(), blk->getOrigSet(), sec_blk);
     return sec_addr | ((Addr)blk_cast->getSectorOffset() << sectorShift);
 }
 

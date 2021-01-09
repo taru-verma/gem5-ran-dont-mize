@@ -916,11 +916,10 @@ Cache::cleanEvictBlk(CacheBlk *blk)
     assert(blk && blk->isValid() && !blk->isSet(CacheBlk::DirtyBit));
 
     // Decrcrypting Address
-    Addr decrypted_address = speck_decrypt_wrapper(regenerateBlkAddr(blk));
-    printf("\t\tRegenerated block address is: %" PRIx64 ", decrypted: %" PRIx64 "\n", regenerateBlkAddr(blk), decrypted_address);
+    printf("\t\tRegenerated block address is: %" PRIx64 "\n", regenerateBlkAddr(blk));
     // Creating a zero sized write, a message to the snoop filter
     RequestPtr req = std::make_shared<Request>(
-        decrypted_address, blkSize, 0, Request::wbRequestorId);
+        regenerateBlkAddr(blk), blkSize, 0, Request::wbRequestorId);
 
     if (blk->isSecure())
         req->setFlags(Request::SECURE);

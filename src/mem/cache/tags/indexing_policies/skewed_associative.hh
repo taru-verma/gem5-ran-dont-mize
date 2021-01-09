@@ -168,7 +168,7 @@ class SkewedAssociative : public BaseIndexingPolicy
      * @param entry The entry.
      * @return the entry's address.
      */
-    Addr regenerateAddr(const Addr tag, const ReplaceableEntry* entry) const
+    Addr regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry) const
                                                                    override;
 };
 

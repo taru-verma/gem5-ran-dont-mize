@@ -1455,11 +1455,7 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
     // Block is guaranteed to be valid at this point
     assert(blk->isValid());
     assert(blk->isSecure() == is_secure);
-
-    // Encrypt address for comparing to encrypted block address, zero out the block offset
-    Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
-    encrypted_addr = encrypted_addr & ~(Addr(blkSize - 1));
-    assert(regenerateBlkAddr(blk) == encrypted_addr);
+    assert(regenerateBlkAddr(blk) == addr);
 
     blk->setCoherenceBits(CacheBlk::ReadableBit);
 

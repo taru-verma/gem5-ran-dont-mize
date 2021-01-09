@@ -169,10 +169,10 @@ class BaseSetAssoc : public BaseTags
                          const std::size_t size,
                          std::vector<CacheBlk*>& evict_blks) override
     {
-        // Encrypt address for access into the cache, zero out the block offset
-        Addr masked_addr = addr >> 6;
-        Addr encrypted_addr = speck_encrypt_wrapper(masked_addr);
+        // Encrypt address for getting the set
+        Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
         
+        printf("findVictim -> addr: %" PRIx64 ", actual set: %" PRIx64 ", encrypted: %" PRIx64 "\n", addr, ((addr >> 6) & 63), encrypted_addr);
         // Get possible entries to be victimized
         const std::vector<ReplaceableEntry*> entries =
             indexingPolicy->getPossibleEntries(encrypted_addr);
@@ -234,7 +234,7 @@ class BaseSetAssoc : public BaseTags
      */
     Addr regenerateBlkAddr(const CacheBlk* blk) const override
     {
-        return indexingPolicy->regenerateAddr(blk->getTag(), blk);
+        return indexingPolicy->regenerateAddr(blk->getTag(), blk->getOrigSet(), blk);
     }
 
     void forEachBlk(std::function<void(CacheBlk &)> visitor) override {
