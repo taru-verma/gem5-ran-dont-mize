@@ -38,3 +38,4 @@ linux/
 *.code-workspace
 sc-results/
 sc-tests/
+log-files/
