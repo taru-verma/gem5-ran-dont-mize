@@ -88,6 +88,18 @@ class TaggedEntry : public ReplaceableEntry
     }
 
     /**
+     * Checks if the given set information corresponds to this entry's unencrypted set
+     *
+     * @param set The set value to compare to.
+     * @return True if the given set information matches this entry's unencrypted set
+     */
+    virtual bool
+    matchOrigSet(Addr set) const
+    {
+        return isValid() && (getOrigSet() == set);
+    }
+
+    /**
      * Insert the block by assigning it a tag and marking it valid. Touches
      * block if it hadn't been touched previously.
      *

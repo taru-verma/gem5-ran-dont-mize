@@ -90,10 +90,12 @@ BaseTags::findBlock(Addr addr, bool is_secure) const
     const std::vector<ReplaceableEntry*> entries =
         indexingPolicy->getPossibleEntries(encrypted_addr);
 
+    printf("\t\t\tFind tag: %" PRIx64 " in enc_set: %" PRIx64 " for orig_set: %" PRIx64 "\n", tag, (encrypted_addr >> 6) & 63, (addr >> 6) & 63);
     // Search for block
     for (const auto& location : entries) {
         CacheBlk* blk = static_cast<CacheBlk*>(location);
-        if (blk->matchTag(tag, is_secure)) {
+        printf("\t\t\t\tblock tag: %" PRIx64 " orig_set: %" PRIx64 "\n", blk->getTag(), blk->getOrigSet());
+        if (blk->matchTag(tag, is_secure) && blk->matchOrigSet((addr >> 6) & 63)) {
             return blk;
         }
     }
