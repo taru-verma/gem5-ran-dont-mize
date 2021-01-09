@@ -172,7 +172,6 @@ class BaseSetAssoc : public BaseTags
         // Encrypt address for getting the set
         Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
         
-        printf("findVictim -> addr: %" PRIx64 ", actual set: %" PRIx64 ", encrypted: %" PRIx64 "\n", addr, ((addr >> 6) & 63), encrypted_addr);
         // Get possible entries to be victimized
         const std::vector<ReplaceableEntry*> entries =
             indexingPolicy->getPossibleEntries(encrypted_addr);

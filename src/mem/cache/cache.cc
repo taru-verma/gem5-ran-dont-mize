@@ -911,12 +911,9 @@ Cache::evictBlock(CacheBlk *blk)
 PacketPtr
 Cache::cleanEvictBlk(CacheBlk *blk)
 {
-    printf("\tShould be a clean evict\n");
     assert(!writebackClean);
     assert(blk && blk->isValid() && !blk->isSet(CacheBlk::DirtyBit));
 
-    // Decrcrypting Address
-    printf("\t\tRegenerated block address is: %" PRIx64 "\n", regenerateBlkAddr(blk));
     // Creating a zero sized write, a message to the snoop filter
     RequestPtr req = std::make_shared<Request>(
         regenerateBlkAddr(blk), blkSize, 0, Request::wbRequestorId);

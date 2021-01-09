@@ -1,4 +1,12 @@
 ----- Active issues -----
+Gen.1.  Program crashes with small inputs when using the CC, both with and without randomization. 
+        Don't recall seeing this before, need to verify with base gem5 implementation.
+
+----- Resolved issues ----
+Enc.1.  How do I get a 64-bit block from the given cipher implementation? Where can I get one? 
+            Resolved - Austin's tip to change 64-bit blocks to 32-bit worked, but required some debugging
+            Keys are still 128, addresses are 64
+            Verified encryption and decryption works
 Enc.2.  How to reconstruct address from given tag and set? 
     Enc2.1  This will only work when (1) is resolved.
     Enc2.2  Basically instead of just going in the indexing policy, the address needs to be
@@ -6,12 +14,6 @@ Enc.2.  How to reconstruct address from given tag and set?
             base-assoc-impl or something like that - find references to regenerateAddr). 
             Then it'll be easy to reconstruct addresses with the tag and the set. 
     Enc2.3  Need to keep track of physical address to reconstruct cache address.
-
------ Resolved issues ----
-Enc.1.  How do I get a 64-bit block from the given cipher implementation? Where can I get one? 
-            Resolved - Austin's tip to change 64-bit blocks to 32-bit worked, but required some debugging
-            Keys are still 128, addresses are 64
-            Verified encryption and decryption works
 
 
 ----- Working Setup for KVM -----

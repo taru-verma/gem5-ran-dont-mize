@@ -58,8 +58,6 @@ SetAssociative::SetAssociative(const Params &p)
 uint32_t
 SetAssociative::extractSet(const Addr addr) const
 {
-    printf("\textractSet -> Encrypted address: %" PRIx64 "\n", addr);
-
     return (addr >> setShift) & setMask;
 }
 
@@ -67,10 +65,7 @@ Addr
 SetAssociative::regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry)
                                                                         const
 {
-    printf("\t\tTag: %" PRIx64 ", ShiftedTag: %" PRIx64 ", enc_set: %" PRIx32 ", orig_set: %" PRIx64 " \n", tag, (tag << tagShift), entry->getSet(), orig_set);
-    printf("\tregenerateAddr -> Address returned is: %" PRIx64 "\n", (tag << tagShift) | (orig_set << setShift));
     return (tag << tagShift) | (orig_set << setShift);
-    //return (tag << tagShift) | (entry->getSet() << setShift);
 }
 
 std::vector<ReplaceableEntry*>

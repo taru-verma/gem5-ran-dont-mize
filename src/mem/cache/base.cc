@@ -62,8 +62,6 @@
 #include "params/WriteAllocator.hh"
 #include "sim/core.hh"
 
-#include "mem/cache/tags/speck_initiate.h"
-
 using namespace std;
 
 BaseCache::CacheResponsePort::CacheResponsePort(const std::string &_name,
@@ -1778,7 +1776,6 @@ BaseCache::sendMSHRQueuePacket(MSHR* mshr)
 
     // use request from 1st target
     PacketPtr tgt_pkt = mshr->getTarget()->pkt;
-    printf("\t\t*** For sendMSHRQueuePacket, sending packet with address: %" PRIx64 "\n", tgt_pkt->getAddr());
 
     DPRINTF(Cache, "%s: MSHR %s\n", __func__, tgt_pkt->print());
 
@@ -1882,7 +1879,6 @@ BaseCache::sendWriteQueuePacket(WriteQueueEntry* wq_entry)
 
     // always a single target for write queue entries
     PacketPtr tgt_pkt = wq_entry->getTarget()->pkt;
-    printf("\t\t*** For sendWriteQueuePacket, sending packet with address: %" PRIx64 "\n", tgt_pkt->getAddr());
 
     DPRINTF(Cache, "%s: write %s\n", __func__, tgt_pkt->print());
 
@@ -2562,7 +2558,6 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
         if (checkConflictingSnoop(entry->getTarget()->pkt)) {
             return;
         }
-        printf("\t\t *** It's a sendDeferredPacket\n");
         waitingOnRetry = entry->sendPacket(cache);
     }
 
