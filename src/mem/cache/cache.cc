@@ -63,6 +63,8 @@
 #include "mem/request.hh"
 #include "params/Cache.hh"
 
+#include "mem/cache/tags/speck_initiate.h"
+
 Cache::Cache(const CacheParams &p)
     : BaseCache(p, p.system->cacheLineSize()),
       doFastWrites(true)
@@ -909,12 +911,16 @@ Cache::evictBlock(CacheBlk *blk)
 PacketPtr
 Cache::cleanEvictBlk(CacheBlk *blk)
 {
+    printf("\tShould be a clean evict\n");
     assert(!writebackClean);
     assert(blk && blk->isValid() && !blk->isSet(CacheBlk::DirtyBit));
 
+    // Decrcrypting Address
+    Addr decrypted_address = speck_decrypt_wrapper(regenerateBlkAddr(blk));
+    printf("\t\tRegenerated block address is: %" PRIx64 ", decrypted: %" PRIx64 "\n", regenerateBlkAddr(blk), decrypted_address);
     // Creating a zero sized write, a message to the snoop filter
     RequestPtr req = std::make_shared<Request>(
-        regenerateBlkAddr(blk), blkSize, 0, Request::wbRequestorId);
+        decrypted_address, blkSize, 0, Request::wbRequestorId);
 
     if (blk->isSecure())
         req->setFlags(Request::SECURE);

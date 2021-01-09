@@ -67,9 +67,8 @@ Addr
 SetAssociative::regenerateAddr(const Addr tag, const ReplaceableEntry* entry)
                                                                         const
 {
-    //return (tag << tagShift) | (((entry->getSet() - 9) % 64) << setShift);
-    printf("\t\tTag: %" PRIx64 ", ShiftedTag: %" PRIx64 ", set: %" PRIu32 " \n", tag, (tag << tagShift), entry->getSet());
-    printf("\t\tAddress returned is: %" PRIx64 "\n", (tag << tagShift) | (entry->getSet() << setShift));
+    //printf("\t\tTag: %" PRIx64 ", ShiftedTag: %" PRIx64 ", set: %" PRIu32 " \n", tag, (tag << tagShift), entry->getSet());
+    //printf("\t\tAddress returned is: %" PRIx64 "\n", (tag << tagShift) | (entry->getSet() << setShift));
     return (tag << tagShift) | (entry->getSet() << setShift);
 }
 

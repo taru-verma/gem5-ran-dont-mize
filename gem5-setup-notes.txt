@@ -5,6 +5,7 @@ Enc.2.  How to reconstruct address from given tag and set?
             encrypted beforehand, so that the tag and the set can be stored (I think 
             base-assoc-impl or something like that - find references to regenerateAddr). 
             Then it'll be easy to reconstruct addresses with the tag and the set. 
+    Enc2.3  Need to keep track of physical address to reconstruct cache address.
 
 ----- Resolved issues ----
 Enc.1.  How do I get a 64-bit block from the given cipher implementation? Where can I get one? 

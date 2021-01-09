@@ -505,7 +505,6 @@ BaseCache::recvTimingResp(PacketPtr pkt)
         // response is not a cache invalidate, we promote targets that
         // were deferred as we couldn't guarrantee a writable copy
         mshr->promoteWritable();
-        printf("\t\t\tPromoted to Writable\n");
     }
 
     serviceMSHRTargets(mshr, pkt, blk);
@@ -1458,7 +1457,7 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
     assert(blk->isSecure() == is_secure);
 
     // Encrypt address for comparing to encrypted block address, zero out the block offset
-    Addr encrypted_addr = speck_encrypt_wrapper(addr);
+    Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
     encrypted_addr = encrypted_addr & ~(Addr(blkSize - 1));
     assert(regenerateBlkAddr(blk) == encrypted_addr);
 
@@ -1779,12 +1778,11 @@ BaseCache::nextQueueReadyTime() const
 bool
 BaseCache::sendMSHRQueuePacket(MSHR* mshr)
 {
-    printf("*** sendMSHRQueuePacket\n");
-
     assert(mshr);
 
     // use request from 1st target
     PacketPtr tgt_pkt = mshr->getTarget()->pkt;
+    printf("\t\t*** For sendMSHRQueuePacket, sending packet with address: %" PRIx64 "\n", tgt_pkt->getAddr());
 
     DPRINTF(Cache, "%s: MSHR %s\n", __func__, tgt_pkt->print());
 
@@ -1888,6 +1886,7 @@ BaseCache::sendWriteQueuePacket(WriteQueueEntry* wq_entry)
 
     // always a single target for write queue entries
     PacketPtr tgt_pkt = wq_entry->getTarget()->pkt;
+    printf("\t\t*** For sendWriteQueuePacket, sending packet with address: %" PRIx64 "\n", tgt_pkt->getAddr());
 
     DPRINTF(Cache, "%s: write %s\n", __func__, tgt_pkt->print());
 
@@ -2567,6 +2566,7 @@ BaseCache::CacheReqPacketQueue::sendDeferredPacket()
         if (checkConflictingSnoop(entry->getTarget()->pkt)) {
             return;
         }
+        printf("\t\t *** It's a sendDeferredPacket\n");
         waitingOnRetry = entry->sendPacket(cache);
     }
 

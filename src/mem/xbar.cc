@@ -326,6 +326,7 @@ BaseXBar::Layer<SrcType, DstType>::recvRetry()
 PortID
 BaseXBar::findPort(AddrRange addr_range)
 {
+    printf("Address range: %s\n", addr_range.to_string().c_str());
     // we should never see any address lookups before we've got the
     // ranges of all connected CPU-side-port modules
     assert(gotAllAddrRanges);

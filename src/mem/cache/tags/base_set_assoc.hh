@@ -170,7 +170,7 @@ class BaseSetAssoc : public BaseTags
                          std::vector<CacheBlk*>& evict_blks) override
     {
         // Encrypt address for access into the cache, zero out the block offset
-        Addr masked_addr = addr & ~(Addr(blkSize - 1));
+        Addr masked_addr = addr >> 6;
         Addr encrypted_addr = speck_encrypt_wrapper(masked_addr);
         
         // Get possible entries to be victimized

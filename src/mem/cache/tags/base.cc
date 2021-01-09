@@ -79,7 +79,7 @@ CacheBlk*
 BaseTags::findBlock(Addr addr, bool is_secure) const
 {
     // Encrypt address for access into the cache, zero out the block offset
-    Addr masked_addr = addr & ~(Addr(blkSize - 1));
+    Addr masked_addr = addr >> 6;
     Addr encrypted_addr = speck_encrypt_wrapper(masked_addr);
 
     // Extract block tag
@@ -115,7 +115,7 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     stats.occupancies[requestor_id]++;
 
     // Encrypt address for access into the cache, zero out the block offset
-    Addr masked_addr = pkt->getAddr() & ~(Addr(blkSize - 1));
+    Addr masked_addr = pkt->getAddr() >> 6;
     Addr encrypted_addr = speck_encrypt_wrapper(masked_addr);
 
     // Insert block with tag, src requestor id and task id
