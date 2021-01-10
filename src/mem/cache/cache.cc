@@ -63,8 +63,6 @@
 #include "mem/request.hh"
 #include "params/Cache.hh"
 
-#include "mem/cache/tags/speck_initiate.h"
-
 Cache::Cache(const CacheParams &p)
     : BaseCache(p, p.system->cacheLineSize()),
       doFastWrites(true)

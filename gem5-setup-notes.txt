@@ -1,6 +1,7 @@
 ----- Active issues -----
-Gen.1.  Program crashes with small inputs when using the CC, both with and without randomization. 
-        Don't recall seeing this before, need to verify with base gem5 implementation.
+Gen.1.  Add flag to enable/disable randomization instead of manually changing code
+SCh.1.  Program crashes with small inputs when using the CC, both with and without randomization - check 
+        cc implementation.
 
 ----- Resolved issues ----
 Enc.1.  How do I get a 64-bit block from the given cipher implementation? Where can I get one? 

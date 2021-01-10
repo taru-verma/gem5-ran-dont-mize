@@ -171,7 +171,8 @@ class BaseSetAssoc : public BaseTags
     {
         // Encrypt address for getting the set
         Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
-        
+
+        // disable_randomization - change to getPossibleEntries(addr)
         // Get possible entries to be victimized
         const std::vector<ReplaceableEntry*> entries =
             indexingPolicy->getPossibleEntries(encrypted_addr);

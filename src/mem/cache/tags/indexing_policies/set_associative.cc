@@ -65,6 +65,7 @@ Addr
 SetAssociative::regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry)
                                                                         const
 {
+    // disable_randomization - change to `orig_set` to `entry->getSet()`
     return (tag << tagShift) | (orig_set << setShift);
 }
 
