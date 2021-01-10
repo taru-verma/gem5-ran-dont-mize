@@ -43,7 +43,7 @@
 class TaggedEntry : public ReplaceableEntry
 {
   public:
-    TaggedEntry() : _valid(false), _secure(false), _tag(MaxAddr) {}
+    TaggedEntry() : _valid(false), _secure(false), _tag(MaxAddr), _orig_set(MaxAddr) {}
     ~TaggedEntry() = default;
 
     /**
@@ -68,6 +68,13 @@ class TaggedEntry : public ReplaceableEntry
     virtual Addr getTag() const { return _tag; }
 
     /**
+     * Get original set associated to this block.
+     *
+     * @return The original set value.
+     */
+    virtual Addr getOrigSet() const { return _orig_set; }
+
+    /**
      * Checks if the given tag information corresponds to this entry's.
      *
      * @param tag The tag value to compare to.
@@ -78,6 +85,18 @@ class TaggedEntry : public ReplaceableEntry
     matchTag(Addr tag, bool is_secure) const
     {
         return isValid() && (getTag() == tag) && (isSecure() == is_secure);
+    }
+
+    /**
+     * Checks if the given set information corresponds to this entry's unencrypted set
+     *
+     * @param set The set value to compare to.
+     * @return True if the given set information matches this entry's unencrypted set
+     */
+    virtual bool
+    matchOrigSet(Addr set) const
+    {
+        return isValid() && (getOrigSet() == set);
     }
 
     /**
@@ -96,18 +115,30 @@ class TaggedEntry : public ReplaceableEntry
         }
     }
 
+    /**
+     * Update the original set of the inserted block 
+     *
+     * @param orig_set The original set.
+     */
+    virtual void
+    update_set(const Addr orig_set)
+    {
+        setOrigSet(orig_set);
+    }
+
     /** Invalidate the block. Its contents are no longer valid. */
     virtual void invalidate()
     {
         _valid = false;
         setTag(MaxAddr);
+        setOrigSet(MaxAddr);
         clearSecure();
     }
 
     std::string
     print() const override
     {
-        return csprintf("tag: %#x secure: %d valid: %d | %s", getTag(),
+        return csprintf("tag: %#x orig_set: %#x secure: %d valid: %d | %s", getTag(), getOrigSet(),
             isSecure(), isValid(), ReplaceableEntry::print());
     }
 
@@ -118,6 +149,13 @@ class TaggedEntry : public ReplaceableEntry
      * @param tag The tag value.
      */
     virtual void setTag(Addr tag) { _tag = tag; }
+
+    /**
+     * Set original set associated to this block.
+     *
+     * @param orig_set The original set value.
+     */
+    virtual void setOrigSet(Addr orig_set) { _orig_set = orig_set; }
 
     /** Set secure bit. */
     virtual void setSecure() { _secure = true; }
@@ -146,6 +184,9 @@ class TaggedEntry : public ReplaceableEntry
 
     /** The entry's tag. */
     Addr _tag;
+
+    /** The entry's original set before encryption. */
+    Addr _orig_set;
 
     /** Clear secure bit. Should be only used by the invalidation function. */
     void clearSecure() { _secure = false; }

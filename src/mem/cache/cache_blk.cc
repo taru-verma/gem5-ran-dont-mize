@@ -50,7 +50,7 @@ CacheBlk::insert(const Addr tag, const bool is_secure,
     // Make sure that the block has been properly invalidated
     assert(!isValid());
 
-    insert(tag, is_secure);
+    TaggedEntry::insert(tag, is_secure);
 
     // Set source requestor ID
     setSrcRequestorId(src_requestor_ID);
@@ -63,6 +63,12 @@ CacheBlk::insert(const Addr tag, const bool is_secure,
 
     // Insertion counts as a reference to the block
     increaseRefCount();
+}
+
+void
+CacheBlk::update_set(const Addr orig_set)
+{
+    TaggedEntry::update_set(orig_set);
 }
 
 void

@@ -62,6 +62,8 @@
 #include "mem/packet.hh"
 #include "params/BaseSetAssoc.hh"
 
+#include "mem/cache/tags/speck_initiate.h"
+
 /**
  * A basic cache tag store.
  * @sa  \ref gem5MemorySystem "gem5 Memory System"
@@ -167,9 +169,12 @@ class BaseSetAssoc : public BaseTags
                          const std::size_t size,
                          std::vector<CacheBlk*>& evict_blks) override
     {
+        // Encrypt address for getting the set
+        Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
+        
         // Get possible entries to be victimized
         const std::vector<ReplaceableEntry*> entries =
-            indexingPolicy->getPossibleEntries(addr);
+            indexingPolicy->getPossibleEntries(encrypted_addr);
 
         // Choose replacement victim from replacement candidates
         CacheBlk* victim = static_cast<CacheBlk*>(replacementPolicy->getVictim(
@@ -228,7 +233,7 @@ class BaseSetAssoc : public BaseTags
      */
     Addr regenerateBlkAddr(const CacheBlk* blk) const override
     {
-        return indexingPolicy->regenerateAddr(blk->getTag(), blk);
+        return indexingPolicy->regenerateAddr(blk->getTag(), blk->getOrigSet(), blk);
     }
 
     void forEachBlk(std::function<void(CacheBlk &)> visitor) override {

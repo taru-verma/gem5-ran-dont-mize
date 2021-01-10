@@ -195,7 +195,7 @@ SkewedAssociative::extractSet(const Addr addr, const uint32_t way) const
 }
 
 Addr
-SkewedAssociative::regenerateAddr(const Addr tag,
+SkewedAssociative::regenerateAddr(const Addr tag, const Addr orig_set,
                                   const ReplaceableEntry* entry) const
 {
     const Addr addr_set = (tag << (msbShift + 1)) | entry->getSet();

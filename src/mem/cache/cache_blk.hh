@@ -173,6 +173,7 @@ class CacheBlk : public TaggedEntry
         assert(other.isValid());
 
         insert(other.getTag(), other.isSecure());
+        update_set(other.getOrigSet());
 
         if (other.wasPrefetched()) {
             setPrefetched();
@@ -315,6 +316,14 @@ class CacheBlk : public TaggedEntry
     void insert(const Addr tag, const bool is_secure,
         const int src_requestor_ID, const uint32_t task_ID);
     using TaggedEntry::insert;
+
+    /**
+     * Update the inserted block with the original unencrypted set.
+     *
+     * @param orig_set Original set.
+     */
+    void update_set(const Addr orig_set);
+    using TaggedEntry::update_set;
 
     /**
      * Track the fact that a local locked was issued to the

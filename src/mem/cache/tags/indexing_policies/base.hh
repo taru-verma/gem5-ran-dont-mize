@@ -150,10 +150,11 @@ class BaseIndexingPolicy : public SimObject
      * Regenerate an entry's address from its tag and assigned indexing bits.
      *
      * @param tag The tag bits.
+     * @param orig_set The original set.
      * @param entry The entry.
      * @return the entry's original address.
      */
-    virtual Addr regenerateAddr(const Addr tag, const ReplaceableEntry* entry)
+    virtual Addr regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry)
                                                                     const = 0;
 };
 

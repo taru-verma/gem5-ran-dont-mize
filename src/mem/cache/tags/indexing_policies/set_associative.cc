@@ -48,6 +48,8 @@
 
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 
+#include <math.h>
+
 SetAssociative::SetAssociative(const Params &p)
     : BaseIndexingPolicy(p)
 {
@@ -60,10 +62,10 @@ SetAssociative::extractSet(const Addr addr) const
 }
 
 Addr
-SetAssociative::regenerateAddr(const Addr tag, const ReplaceableEntry* entry)
+SetAssociative::regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry)
                                                                         const
 {
-    return (tag << tagShift) | (entry->getSet() << setShift);
+    return (tag << tagShift) | (orig_set << setShift);
 }
 
 std::vector<ReplaceableEntry*>
