@@ -89,14 +89,17 @@ BaseTags::findBlock(Addr addr, bool is_secure) const
     const std::vector<ReplaceableEntry*> entries =
         indexingPolicy->getPossibleEntries(encrypted_addr);
 
+        //printf("\t\tfindBlock at addr: %" PRIx64 " with set %" PRIu64 " \tencrypted_addr %" PRIx64 " \n", addr, ((addr >> 6) & 63), encrypted_addr);
     // disable_randomization - remove matchOrigSet condition (should work fine with it too)
     // Search for block
     for (const auto& location : entries) {
         CacheBlk* blk = static_cast<CacheBlk*>(location);
+        //printf("\t\t\tcandidate block tag: %" PRIx64 " | encrypted_set %" PRIu32 " with original_set: %" PRIu64 "\n", blk->getTag(), blk->getSet(), blk->getOrigSet());
         if (blk->matchTag(tag, is_secure) && blk->matchOrigSet((addr >> 6) & 63)) {
             return blk;
         }
     }
+        //printf("\t\t\tmissed!\n");
 
     // Did not find block
     return nullptr;
@@ -116,6 +119,8 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     stats.occupancies[requestor_id]++;
 
     Addr addr = pkt->getAddr();
+
+        //printf("\t\tinsertBlock at addr: %" PRIx64 " with set %" PRIx64 /*" \tencrypted_addr %" PRIx64 */" with encrypted_set: %" PRIx32 "\n", addr, ((addr >> 6) & 63), /*encrypted_addr, */ blk->getSet());
 
     // Insert block with tag, src requestor id and task id
     blk->insert(extractTag(addr), pkt->isSecure(), requestor_id,
