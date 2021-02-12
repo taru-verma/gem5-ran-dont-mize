@@ -72,9 +72,14 @@ binary = os.path.join(thispath, '../',
 
 # Check if there was a binary passed in via the command line and error if
 # there are too many arguments
-if len(args) == 1:
+if len(args) == 4:
     binary = args[0]
-elif len(args) > 1:
+    sample_cnt = args[1]
+    num_recv = args[2]
+    num_send = args[3]
+elif len(args) == 1:
+    binary = args[0]
+else:
     SimpleOpts.print_help()
     m5.fatal("Expected a binary to execute as positional argument")
 
@@ -133,7 +138,7 @@ system.workload = SEWorkload.init_compatible(binary)
 process = Process()
 # Set the command
 # cmd is a list which begins with the executable (like argv)
-process.cmd = [binary] + ['200', '512', '256']
+process.cmd = [binary] + [sample_cnt, num_recv, num_send]
 # Set the cpu to use the process as its workload and create thread contexts
 system.cpu.workload = process
 system.cpu.createThreads()

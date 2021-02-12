@@ -37,5 +37,5 @@ linux/
 .vscode/
 *.code-workspace
 sc-results/
-sc-tests/
+sc-binaries/
 log-files/
