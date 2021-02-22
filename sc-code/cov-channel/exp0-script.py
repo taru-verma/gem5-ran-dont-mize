@@ -19,17 +19,17 @@ num_trials = 500
 
 # stdout log file
 out_file = open('out.log', 'w')
-out_file.write('exp0 gem5 and covert channel outputs\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
+out_file.write('### exp0 gem5 and covert channel outputs\n### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
 out_file.flush()
 
 # stderr log file
 err_file = open('err.log', 'w')
-err_file.write('exp0 gem5 errors and warnings\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
+err_file.write('### exp0 gem5 errors and warnings\n### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
 err_file.flush()
 
 # results log file
 res_file = open('res.log', 'w')
-res_file.write('exp0 average access times\n~~~~~~~~~~~~~~~~~~~~\n')
+res_file.write('### exp0 average access times\n### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
 res_file.flush()
 
 # n = 64, 128, 256, 512
