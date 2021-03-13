@@ -72,7 +72,6 @@ int main(int argc, char **argv) {
 
     for (i = 0; i < sample_cnt; ++i)
     {
-        access_time = 0;
         // Receiver Prime - read cache lines
         for (j = 0; j < n; ++j)
             read_cache_line(addr_ptr_recv[j]);
@@ -84,7 +83,7 @@ int main(int argc, char **argv) {
             access_time += read_and_time_cache_line(addr_ptr_recv[j]);
     }
 
-    printf("res=%d,%d,%f\n", n, m, (double)access_time/n);
+    printf("res=%d,%d,%f\n", n, m, (double)access_time/(n*sample_cnt));
 
     return EXIT_SUCCESS;
 }
