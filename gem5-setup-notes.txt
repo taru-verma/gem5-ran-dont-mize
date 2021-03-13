@@ -1,7 +1,8 @@
 ----- Active issues -----
 Gen.1.  Add flag to enable/disable randomization instead of manually changing code
-SCh.1.  Program crashes with small inputs when using the CC, both with and without randomization - check 
-        cc implementation.
+Gm5.1.  Gem5 sometimes doesn't bind to listener ports when multiple experiments are started at the same time
+            Saw a similar issue like this in the mailing list
+            Maybe time/interleave launching different experiments
 
 ----- Resolved issues ----
 Enc.1.  How do I get a 64-bit block from the given cipher implementation? Where can I get one? 
@@ -15,6 +16,8 @@ Enc.2.  How to reconstruct address from given tag and set?
             base-assoc-impl or something like that - find references to regenerateAddr). 
             Then it'll be easy to reconstruct addresses with the tag and the set. 
     Enc2.3  Need to keep track of physical address to reconstruct cache address.
+SCh.1.  Program crashes with small inputs when using the CC, both with and without randomization - check 
+        cc implementation.
 
 
 ----- Working Setup for KVM -----

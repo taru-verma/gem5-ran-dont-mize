@@ -13,22 +13,22 @@ import re
 current_dir = os.path.dirname(os.path.realpath(__file__))
 gem5_binary = os.path.join(current_dir, "build/X86/gem5.opt")
 config_script = os.path.join(current_dir, "sc-configs/sysconfig.py")
-cov_chan_code = os.path.join(current_dir, "sc-binaries/cov-channel-base-rep-send0")
+cov_chan_code = os.path.join(current_dir, "sc-binaries/cov-channel-base-rep-send1-analytics")
 
-num_trials = 500
+num_trials = 1
 
 # stdout log file
-out_file = open('out.log', 'w')
+out_file = open('out1.log', 'w')
 out_file.write('### exp0 gem5 and covert channel outputs\n### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
 out_file.flush()
 
 # stderr log file
-err_file = open('err.log', 'w')
+err_file = open('err1.log', 'w')
 err_file.write('### exp0 gem5 errors and warnings\n### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
 err_file.flush()
 
 # results log file
-res_file = open('res.log', 'w')
+res_file = open('res1.log', 'w')
 res_file.write('### exp0 average access times\n### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
 res_file.flush()
 
@@ -37,7 +37,7 @@ res_file.flush()
 for n in [64*pow(2, i) for i in range(4)]:
     for m in [pow(2, j) for j in range(3, int(math.log(n,2))+1, 1)]:
         # Prepare command to execute
-        cmd = [gem5_binary, config_script, cov_chan_code, str(num_trials), str(n), str(m)]
+        cmd = [gem5_binary, config_script, cov_chan_code, str(num_trials), str(n+1), str(m+1)]
         cmd_str = "Executing cmd: " + " ".join(cmd) + '\n'
         print(cmd_str)
 
