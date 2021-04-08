@@ -156,6 +156,14 @@ class BaseIndexingPolicy : public SimObject
      */
     virtual Addr regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry)
                                                                     const = 0;
+
+    /**
+     * Wrapper function to protected extractSet() - required for reconstructing unencrypted address
+     *
+     * @param addr The address to extract set from.
+     * @return The set index for given address.
+     */
+    virtual Addr extractOrigSet(const Addr addr) const = 0; 
 };
 
 #endif //__MEM_CACHE_INDEXING_POLICIES_BASE_HH__

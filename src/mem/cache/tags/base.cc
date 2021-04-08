@@ -93,7 +93,7 @@ BaseTags::findBlock(Addr addr, bool is_secure) const
     // Search for block
     for (const auto& location : entries) {
         CacheBlk* blk = static_cast<CacheBlk*>(location);
-        if (blk->matchTag(tag, is_secure) && blk->matchOrigSet((addr >> 6) & 63)) {
+        if (blk->matchTag(tag, is_secure) && blk->matchOrigSet(indexingPolicy->extractOrigSet(addr))) {
             return blk;
         }
     }
@@ -120,7 +120,7 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     // Insert block with tag, src requestor id and task id
     blk->insert(extractTag(addr), pkt->isSecure(), requestor_id,
                 pkt->req->taskId());
-    blk->update_set((addr >> 6) & 63);
+    blk->update_set(indexingPolicy->extractOrigSet(addr));
 
     // Check if cache warm up is done
     if (!warmedUp && stats.tagsInUse.value() >= warmupBound) {

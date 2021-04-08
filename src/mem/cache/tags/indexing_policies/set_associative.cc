@@ -65,7 +65,7 @@ Addr
 SetAssociative::regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry)
                                                                         const
 {
-    // disable_randomization - change to `orig_set` to `entry->getSet()`
+    // disable_randomization - change `orig_set` to `entry->getSet()`
     return (tag << tagShift) | (orig_set << setShift);
 }
 
@@ -73,4 +73,9 @@ std::vector<ReplaceableEntry*>
 SetAssociative::getPossibleEntries(const Addr addr) const
 {
     return sets[extractSet(addr)];
+}
+
+Addr SetAssociative::extractOrigSet(const Addr addr) const
+{
+    return extractSet(addr);
 }
