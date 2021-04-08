@@ -19,6 +19,9 @@ Enc.2.  How to reconstruct address from given tag and set?
 SCh.1.  Program crashes with small inputs when using the CC, both with and without randomization - check 
         cc implementation.
 
+----- Notes -----
+1. gem5 works well with readq implementation than ladder (opposite for baremetal)
+
 
 ----- Working Setup for KVM -----
 1. Download latest gem5 from gem5-ran-dont-mize repo

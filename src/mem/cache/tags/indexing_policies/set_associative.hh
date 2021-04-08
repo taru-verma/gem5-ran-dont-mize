@@ -125,6 +125,15 @@ class SetAssociative : public BaseIndexingPolicy
      */
     Addr regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry) const
                                                                    override;
+
+    /**
+     * Wrapper function to protected extractSet() - required for reconstructing unencrypted address
+     *
+     * @param addr The address to extract set from.
+     * @return The set index for given address.
+     */
+    Addr extractOrigSet(const Addr addr) const 
+                                       override;
 };
 
 #endif //__MEM_CACHE_INDEXING_POLICIES_SET_ASSOCIATIVE_HH__

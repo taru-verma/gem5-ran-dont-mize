@@ -216,3 +216,12 @@ SkewedAssociative::getPossibleEntries(const Addr addr) const
 
     return entries;
 }
+
+/*
+* Needed for SetAssociative only, added here for build purposes (virtual function needs to be 
+  overriden in child classes); DO NOT USE
+*/
+Addr SkewedAssociative::extractOrigSet(const Addr addr) const
+{
+    return extractSet(addr, 0);
+}

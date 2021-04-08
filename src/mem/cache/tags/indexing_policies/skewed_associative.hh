@@ -170,6 +170,17 @@ class SkewedAssociative : public BaseIndexingPolicy
      */
     Addr regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry) const
                                                                    override;
+
+    /**
+     * Wrapper function to protected extractSet() - required for reconstructing unencrypted address
+     * Needed for SetAssociative only, added here for build purposes (virtual function needs to be 
+     * overriden in child classes); DO NOT USE
+     *
+     * @param addr The address to extract set from.
+     * @return The set index for given address.
+     */
+    Addr extractOrigSet(const Addr addr) const 
+                                       override;
 };
 
 #endif //__MEM_CACHE_INDEXING_POLICIES_SKEWED_ASSOCIATIVE_HH__
