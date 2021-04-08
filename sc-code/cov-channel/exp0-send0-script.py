@@ -13,7 +13,7 @@ import re
 current_dir = os.path.dirname(os.path.realpath(__file__))
 gem5_binary = os.path.join(current_dir, "build/X86/gem5.opt")
 config_script = os.path.join(current_dir, "sc-configs/sysconfig.py")
-cov_chan_code = os.path.join(current_dir, "sc-binaries/cov-channel-base-rep-send0-lfsr")
+cov_chan_code = os.path.join(current_dir, "sc-binaries/g5-cc-rep-send0")
 
 num_trials = 500
 
@@ -34,6 +34,7 @@ res_file.flush()
 
 # n = 64, 128, 256, 512
 # m = 8, 16, 32, ..., (till m == n)
+#for (n, m) in [(128, 32), (256, 32), (512, 8)]:
 for n in [64*pow(2, i) for i in range(4)]:
     for m in [pow(2, j) for j in range(3, int(math.log(n,2))+1, 1)]:
         # Prepare command to execute
