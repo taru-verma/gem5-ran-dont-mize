@@ -114,10 +114,7 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     // Insert block with tag, src requestor id and task id
     blk->insert(extractTag(addr), pkt->isSecure(), requestor_id,
                 pkt->req->taskId());
-<<<<<<< HEAD
-=======
     // Store the original set; need a wrapper function since extractSet() is not public
->>>>>>> main
     blk->update_set(indexingPolicy->extractOrigSet(addr));
 
     // Check if cache warm up is done
