@@ -79,3 +79,10 @@ Addr SetAssociative::extractOrigSet(const Addr addr) const
 {
     return extractSet(addr);
 }
+
+std::vector<ReplaceableEntry*>
+SetAssociative::getAllPossibleEntries(const Addr addr) const
+{
+    return sets[extractSet(addr)];
+}
+

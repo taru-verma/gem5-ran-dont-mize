@@ -147,6 +147,17 @@ class BaseIndexingPolicy : public SimObject
                                                                     const = 0;
 
     /**
+     * Find all possible entries for finding the block with encrypted caches.
+     * Should be called immediately before ReplacementPolicy's findVictim()
+     * not to break cache resizing.
+     *
+     * @param addr The addr to a find possible entries for.
+     * @return The possible entries.
+     */
+    virtual std::vector<ReplaceableEntry*> getAllPossibleEntries(const Addr addr)
+                                                                    const = 0;
+
+    /**
      * Regenerate an entry's address from its tag and assigned indexing bits.
      *
      * @param tag The tag bits.
