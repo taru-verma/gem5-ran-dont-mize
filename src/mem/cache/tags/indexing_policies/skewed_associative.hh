@@ -161,6 +161,19 @@ class SkewedAssociative : public BaseIndexingPolicy
                                                                    override;
 
     /**
+     * Find all possible entries for finding the block with randomized caches.
+     * Should be called immediately before ReplacementPolicy's findVictim()
+     * not to break cache resizing.
+     * Returns entries in all ways belonging to the set of the address.
+     * DO NOT USE;
+     *
+     * @param addr The addr to a find possible entries for.
+     * @return The possible entries.
+     */
+    std::vector<ReplaceableEntry*> getAllPossibleEntries(const Addr addr) const
+                                                                     override;
+
+    /**
      * Regenerate an entry's address from its tag and assigned set and way.
      * Uses the inverse of the skewing function.
      *

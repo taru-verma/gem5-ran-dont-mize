@@ -55,8 +55,6 @@
 #include "sim/sim_exit.hh"
 #include "sim/system.hh"
 
-#include "mem/cache/tags/speck_initiate.h"
-
 BaseTags::BaseTags(const Params &p)
     : ClockedObject(p), blkSize(p.block_size), blkMask(blkSize - 1),
       size(p.size), lookupLatency(p.tag_latency),
@@ -78,16 +76,11 @@ BaseTags::findBlockBySetAndWay(int set, int way) const
 CacheBlk*
 BaseTags::findBlock(Addr addr, bool is_secure) const
 {
-    // Encrypt address for getting the set
-    Addr encrypted_addr = speck_encrypt_wrapper(addr >> 6);
-
     // Extract block tag
     Addr tag = extractTag(addr);
 
-    // disable_randomization - change to getPossibleEntries(addr)
-    // Find possible entries that may contain the given address
     const std::vector<ReplaceableEntry*> entries =
-        indexingPolicy->getPossibleEntries(encrypted_addr);
+        indexingPolicy->getAllPossibleEntries(addr);
 
     // disable_randomization - remove matchOrigSet condition (should work fine with it too)
     // Search for block
@@ -120,6 +113,7 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     // Insert block with tag, src requestor id and task id
     blk->insert(extractTag(addr), pkt->isSecure(), requestor_id,
                 pkt->req->taskId());
+    // Store the original set; need a wrapper function since extractSet() is not public
     blk->update_set(indexingPolicy->extractOrigSet(addr));
 
     // Check if cache warm up is done

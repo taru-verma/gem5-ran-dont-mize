@@ -64,7 +64,7 @@ class BaseTags(ClockedObject):
         "Whether to access tags and data sequentially")
 
     # Get indexing policy
-    indexing_policy = Param.BaseIndexingPolicy(SetAssociative(),
+    indexing_policy = Param.BaseIndexingPolicy(RandomPartitions(),
         "Indexing policy")
 
     # Set the indexing entry size as the block size

@@ -218,10 +218,21 @@ SkewedAssociative::getPossibleEntries(const Addr addr) const
 }
 
 /*
-* Needed for SetAssociative only, added here for build purposes (virtual function needs to be 
+* Needed for RandomPartitions only, added here for build purposes (virtual function needs to be 
   overriden in child classes); DO NOT USE
 */
 Addr SkewedAssociative::extractOrigSet(const Addr addr) const
 {
     return extractSet(addr, 0);
+}
+
+/*
+* Needed for RandomPartitions only, added here for build purposes (virtual function needs to be 
+  overriden in child classes); DO NOT USE
+*/
+std::vector<ReplaceableEntry*>
+SkewedAssociative::getAllPossibleEntries(const Addr addr) const
+{
+    std::vector<ReplaceableEntry*> entries = getPossibleEntries(addr);
+    return entries;
 }

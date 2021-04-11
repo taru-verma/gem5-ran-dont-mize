@@ -31,10 +31,19 @@
 #define NUM_BLOCKS 8    // 8 * (8 bits = 64 bits address
 #define ADDR_SIZE 16    // Address from gem5 of type uint64_t, 16 * 4bits in each char
 
-static const uint64_t s_key[2] = {0x0706050403020100, 0x0f0e0d0c0b0a0908};
-static const uint8_t s_key_stream[16] = {
+static const uint8_t s_key_stream_p0[16] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 };
+static const uint8_t s_key_stream_p1[16] = {
+    0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+};
+static const uint8_t s_key_stream_p2[16] = {
+    0x02, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+};
+static const uint8_t s_key_stream_p3[16] = {
+    0x03, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+};
+
 uint32_t plain_text[NUM_BLOCKS];
 uint32_t cipher_text[2] = {0x0, 0x0};
 uint32_t decrypted_text[2] = {0x0, 0x0};
@@ -66,7 +75,18 @@ uint32_t * speck_prepare_address(const uint64_t addr) {
     return plain_text;
 }
 
-uint32_t * speck_addr_encrypt(uint32_t plain_text[2]) {
+uint32_t * speck_addr_encrypt(uint32_t plain_text[2], int partition) {
+
+    uint8_t s_key_stream[16];
+    if (partition == 0)
+        memcpy(s_key_stream, s_key_stream_p0, sizeof(s_key_stream));
+    else if (partition == 1)
+        memcpy(s_key_stream, s_key_stream_p1, sizeof(s_key_stream));
+    else if (partition == 2)
+        memcpy(s_key_stream, s_key_stream_p2, sizeof(s_key_stream));
+    else
+        memcpy(s_key_stream, s_key_stream_p3, sizeof(s_key_stream));
+
     speck_ctx_t *ctx = speck_init(SPECK_ENCRYPT_TYPE_128_128, s_key_stream, sizeof(s_key_stream));
     if(!ctx) return NULL;
 
@@ -76,7 +96,17 @@ uint32_t * speck_addr_encrypt(uint32_t plain_text[2]) {
     return cipher_text;
 }
 
-uint32_t * speck_addr_decrypt(uint32_t cipher_text[2]) {
+uint32_t * speck_addr_decrypt(uint32_t cipher_text[2], int partition) {
+    uint8_t s_key_stream[16];
+    if (partition == 0)
+        memcpy(s_key_stream, s_key_stream_p0, sizeof(s_key_stream));
+    else if (partition == 1)
+        memcpy(s_key_stream, s_key_stream_p1, sizeof(s_key_stream));
+    else if (partition == 2)
+        memcpy(s_key_stream, s_key_stream_p2, sizeof(s_key_stream));
+    else
+        memcpy(s_key_stream, s_key_stream_p3, sizeof(s_key_stream));
+
     speck_ctx_t *ctx = speck_init(SPECK_ENCRYPT_TYPE_128_128, s_key_stream, sizeof(s_key_stream));
     if(!ctx) return NULL;
 
@@ -86,7 +116,7 @@ uint32_t * speck_addr_decrypt(uint32_t cipher_text[2]) {
     return decrypted_text;
 }
 
-uint64_t speck_encrypt_wrapper(const uint64_t addr) {
+uint64_t speck_encrypt_wrapper(const uint64_t addr, int partition) {
     uint32_t *ptx_address; 
     uint32_t *ptx = (uint32_t*) calloc(2, sizeof(uint32_t));
     uint32_t *ctx = (uint32_t*) calloc(2, sizeof(uint32_t));
@@ -98,7 +128,7 @@ uint64_t speck_encrypt_wrapper(const uint64_t addr) {
         ptx[i/(NUM_BLOCKS/2)] += ptx_address[i] * pow(256, (i%(NUM_BLOCKS/2)));
 
     //printf("\tEncrypting: \n");
-    ctx = speck_addr_encrypt(ptx);
+    ctx = speck_addr_encrypt(ptx, partition);
     
     uint64_t encrypted_addr = 0;
     encrypted_addr = ctx[1] * (uint64_t)pow(256, 4) + ctx[0];
@@ -108,7 +138,7 @@ uint64_t speck_encrypt_wrapper(const uint64_t addr) {
     return encrypted_addr;
 }
 
-uint64_t speck_decrypt_wrapper(const uint64_t addr) {
+uint64_t speck_decrypt_wrapper(const uint64_t addr, int partition) {
     uint32_t *ctx_address; 
     uint32_t *ctx = (uint32_t*) calloc(2, sizeof(uint32_t));
     uint32_t *dtx = (uint32_t*) calloc(2, sizeof(uint32_t));
@@ -120,7 +150,7 @@ uint64_t speck_decrypt_wrapper(const uint64_t addr) {
         ctx[i/(NUM_BLOCKS/2)] += ctx_address[i] * pow(256, (i%(NUM_BLOCKS/2)));
  
     //printf("\tDecrypting: \n");
-    dtx = speck_addr_decrypt(ctx);
+    dtx = speck_addr_decrypt(ctx, partition);
 
     uint64_t decrypted_addr = 0;
     decrypted_addr = dtx[1] * (uint64_t)pow(256, 4) + dtx[0];
@@ -137,10 +167,10 @@ void speck_dummy_landing() {
 /*
 int main() {
     uint64_t addr = 0x9700c;
-    uint64_t getaddr = speck_encrypt_wrapper(0x9700c);
-    uint64_t retaddr = speck_decrypt_wrapper(getaddr);
+    uint64_t getaddr = speck_encrypt_wrapper(0x9700c, 0);
+    uint64_t retaddr = speck_decrypt_wrapper(getaddr, 0);
 
-    printf("\t%s\n", addr == retaddr ? "Successful" : "Unsuccessful");
+    printf("\t%s -> addr: %" PRIx64 ", enc: %" PRIx64 ", dec: %" PRIx64 "\n", addr == retaddr ? "Successful" : "Unsuccessful", addr, getaddr, retaddr);
 
     return 0;
 }
