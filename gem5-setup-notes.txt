@@ -1,8 +1,7 @@
 ----- Active issues -----
-Gen.1.  Add flag to enable/disable randomization instead of manually changing code
-Gm5.1.  Gem5 sometimes doesn't bind to listener ports when multiple experiments are started at the same time
-            Saw a similar issue like this in the mailing list
-            Maybe time/interleave launching different experiments
+Enc.4.  Pass num_partitions parameter from top level
+            Requires changes in Cache.py, Tags.Py, IndexingPolicy.py and associated files - 
+            basically define and initialize the parameter
 
 ----- Resolved issues ----
 Enc.1.  How do I get a 64-bit block from the given cipher implementation? Where can I get one? 
@@ -16,6 +15,14 @@ Enc.2.  How to reconstruct address from given tag and set?
             base-assoc-impl or something like that - find references to regenerateAddr). 
             Then it'll be easy to reconstruct addresses with the tag and the set. 
     Enc2.3  Need to keep track of physical address to reconstruct cache address.
+Enc.3. Parameterized partitions implemented
+            Once num_partitions is specified in the RandomPartitions indexing policy, everything 
+            else is programmatic.
+Gen.1.  Add flag to enable/disable randomization instead of manually changing code
+            That would require changing indexing policy, not trivial. This is not something that needs to be done.
+Gm5.1.  Gem5 sometimes doesn't bind to listener ports when multiple experiments are started at the 
+        same time - saw a similar issue like this in the mailing list
+            Just launch the other set of experiments a few seconds later time/interleave
 SCh.1.  Program crashes with small inputs when using the CC, both with and without randomization - check 
         cc implementation.
 
