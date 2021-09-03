@@ -11,6 +11,8 @@
 
 #include <math.h>
 
+#define NUM_PARTITIONS 1 
+
 RandomPartitions::RandomPartitions(const Params &p)
     : BaseIndexingPolicy(p)
 {
@@ -34,12 +36,12 @@ std::vector<ReplaceableEntry*>
 RandomPartitions::getPossibleEntries(const Addr addr) const
 {
     std::vector<ReplaceableEntry*> entries;
-    int i = 0, num_partitions = 4;
-    int partition_size = assoc/num_partitions;
+    int i = 0, partition_size = assoc/NUM_PARTITIONS;
 
     // Pick a partition at random and get the encrypted address for that partition
-    int random_partition = rand() % num_partitions;
+    int random_partition = rand() % NUM_PARTITIONS;
     Addr encrypted_addr = speck_encrypt_wrapper(addr >> setShift, random_partition);
+    //Addr encrypted_addr = speck_encrypt_wrapper(extractSet(addr), random_partition);
 
     // Get all ways for the set in that partition, replacement policy chooses where to put.
     for (i = 0; i < partition_size; ++i)
@@ -53,18 +55,18 @@ RandomPartitions::getAllPossibleEntries(const Addr addr) const
 {
     std::vector<ReplaceableEntry*> entries;
     std::vector<Addr> encrypted_addresses;
-    int num_partitions = 4;
     int i = 0, j = 0;
 
     // Generate encrypted addresses for all partitions since 
     // while writing partition was chosen randomly
-    for (i = 0; i < num_partitions; ++i)
+    for (i = 0; i < NUM_PARTITIONS; ++i)
         encrypted_addresses.push_back(speck_encrypt_wrapper(addr >> setShift, i));
+        //encrypted_addresses.push_back(speck_encrypt_wrapper(extractSet(addr), i));
 
     // Return all ways for the set in each partition
-    for (i = 0; i < num_partitions; ++i)
-        for (j = 0; j < assoc/num_partitions; ++j)
-            entries.push_back(sets[extractSet(encrypted_addresses[i])][j+i*assoc/num_partitions]);
+    for (i = 0; i < NUM_PARTITIONS; ++i)
+        for (j = 0; j < assoc/NUM_PARTITIONS; ++j)
+            entries.push_back(sets[extractSet(encrypted_addresses[i])][j+i*assoc/NUM_PARTITIONS]);
 
     return entries;
 }

@@ -96,7 +96,7 @@ system.mem_mode = 'timing'               # Use timing accesses
 system.mem_ranges = [AddrRange('512MB')] # Create an address range
 
 # Create a simple CPU
-system.cpu = TimingSimpleCPU()
+system.cpu = DerivO3CPU(branchPred=LTAGE())
 
 # Create a memory bus
 system.membus = SystemXBar()
