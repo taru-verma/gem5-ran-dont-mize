@@ -47,7 +47,7 @@ import m5
 from m5.objects import *
 
 # Add the common scripts to our path
-m5.util.addToPath('../configs/')
+m5.util.addToPath('../../configs/')
 
 # import the caches which we made
 from caches import *
@@ -96,7 +96,8 @@ system.mem_mode = 'timing'               # Use timing accesses
 system.mem_ranges = [AddrRange('512MB')] # Create an address range
 
 # Create a simple CPU
-system.cpu = DerivO3CPU(branchPred=LTAGE())
+system.cpu = TimingSimpleCPU()
+#system.cpu = DerivO3CPU(branchPred=LTAGE())
 
 # Create a memory bus
 system.membus = SystemXBar()
