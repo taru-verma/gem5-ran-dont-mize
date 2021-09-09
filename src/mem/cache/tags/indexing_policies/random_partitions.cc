@@ -28,7 +28,6 @@ Addr
 RandomPartitions::regenerateAddr(const Addr tag, const Addr orig_set, const ReplaceableEntry* entry)
                                                                         const
 {
-    // disable_randomization - change `orig_set` to `entry->getSet()`
     return (tag << tagShift) | (orig_set << setShift);
 }
 
@@ -39,9 +38,9 @@ RandomPartitions::getPossibleEntries(const Addr addr) const
     int i = 0, partition_size = assoc/NUM_PARTITIONS;
 
     // Pick a partition at random and get the encrypted address for that partition
+    // Don't use extractSet() since you encrypt the tag+set portion of the address
     int random_partition = rand() % NUM_PARTITIONS;
     Addr encrypted_addr = speck_encrypt_wrapper(addr >> setShift, random_partition);
-    //Addr encrypted_addr = speck_encrypt_wrapper(extractSet(addr), random_partition);
 
     // Get all ways for the set in that partition, replacement policy chooses where to put.
     for (i = 0; i < partition_size; ++i)
@@ -61,7 +60,6 @@ RandomPartitions::getAllPossibleEntries(const Addr addr) const
     // while writing partition was chosen randomly
     for (i = 0; i < NUM_PARTITIONS; ++i)
         encrypted_addresses.push_back(speck_encrypt_wrapper(addr >> setShift, i));
-        //encrypted_addresses.push_back(speck_encrypt_wrapper(extractSet(addr), i));
 
     // Return all ways for the set in each partition
     for (i = 0; i < NUM_PARTITIONS; ++i)
