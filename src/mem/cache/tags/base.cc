@@ -90,7 +90,6 @@ BaseTags::findBlock(Addr addr, bool is_secure) const
             return blk;
         }
     }
-        //printf("\t\t\tmissed!\n");
 
     // Did not find block
     return nullptr;

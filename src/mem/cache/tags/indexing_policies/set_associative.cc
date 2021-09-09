@@ -85,4 +85,3 @@ SetAssociative::getAllPossibleEntries(const Addr addr) const
 {
     return sets[extractSet(addr)];
 }
-

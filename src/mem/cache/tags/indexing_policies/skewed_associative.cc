@@ -236,4 +236,3 @@ SkewedAssociative::getAllPossibleEntries(const Addr addr) const
     std::vector<ReplaceableEntry*> entries = getPossibleEntries(addr);
     return entries;
 }
-
